@@ -6,7 +6,7 @@ const Token: NextPage = (props) => {
   return (
     <div>
       <Head>
-        <title>Solana Scaffold</title>
+        <title>Soylana</title>
         <meta
           name="description"
           content="Token Basics"
