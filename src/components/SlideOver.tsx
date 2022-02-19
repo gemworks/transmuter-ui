@@ -11,6 +11,7 @@ import useGembankStore from "../stores/useGembankStore";
 import { WhiteListProps } from "../interfaces";
 import { ExclamationCircleIcon } from "@heroicons/react/solid";
 import { useInputState } from "../utils/hooks/hooks";
+import { ToastContainer, toast } from "react-toastify";
 interface SlideOverProps {
 	open: boolean;
 	bankPk: string;
@@ -141,7 +142,7 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 		setWhiteList(whitelistPdas_);
 		console.log(whitelistPdas_);
 	}
-	async function removeFromBankWhitelist_(mint: string) {
+	const removeFromBankWhitelist = async (mint: string) => {
 		const { tx } = await transmuterWrapper.removeFromBankWhitelist(new PublicKey(bankPk), new PublicKey(mint));
 		const { response } = await tx.confirm();
 
@@ -150,6 +151,19 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 		}
 		console.log(response.transaction.signatures[0]);
 	}
+
+
+	async function removeFromBankWhitelist_(mint: string) {
+		toast.promise(removeFromBankWhitelist(mint), {
+
+			pending: `Removing ${mint}`,
+			success: `Successfully removed ${mint}`,
+			error: "Something went wrong 😕",
+		}, {
+	position: "bottom-right",
+	});
+	}
+
 	async function addToWhiteList_() {
 		const { tx } = await transmuterWrapper.addToBankWhitelist(new PublicKey(bankPk), new PublicKey(publicKey), whitelistType);
 		const { response } = await tx.confirm();
@@ -160,7 +174,13 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 		console.log(response.transaction.signatures[0]);
 	}
 	return (
+		<>
+				<ToastContainer
+				theme="colored"
+				/>
+	
 		<Transition.Root show={open} as={Fragment}>
+		
 			<Dialog as="div" className="fixed inset-0 overflow-hidden" onClose={toggleState}>
 				<div className="absolute inset-0 overflow-hidden">
 					<Dialog.Overlay className="absolute inset-0" />
@@ -238,5 +258,6 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 				</div>
 			</Dialog>
 		</Transition.Root>
+		</>
 	);
 }
