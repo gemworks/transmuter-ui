@@ -9,6 +9,7 @@ module.exports = {
     require('daisyui'),
     require("@tailwindcss/typography"),
     require('@tailwindcss/aspect-ratio'),
+    require('@tailwindcss/forms')
   ],
   daisyui: {
     styled: true,

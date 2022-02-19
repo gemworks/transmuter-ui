@@ -120,8 +120,7 @@ export const TransmuterView: FC = ({}) => {
 	useEffect(() => {
 		if (transmuterClient) {
 			getTransmuter(transmuterClient);
-			initClient();
-		
+	
 		}
 	}, [transmuterClient])
 
