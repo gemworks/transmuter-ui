@@ -3,23 +3,23 @@ import { Connection } from "@solana/web3.js";
 import { SolanaProvider, Wallet } from "@saberhq/solana-contrib";
 import { TransmuterSDK } from "@gemworks/transmuter-ts";
 interface TransmuterStore extends State {
-	sdk: TransmuterSDK;
-	initSDK: (wallet: Wallet, connection: Connection) => void;
+	transmuterClient: TransmuterSDK;
+	initTransmuterClient: (wallet: Wallet, connection: Connection) => void;
 }
 
 const useTransmuterStore = create<TransmuterStore>((set, _get) => ({
-	sdk: null,
-	initSDK: (wallet: Wallet, connection) => {
-		let sdk = null;
+	transmuterClient: null,
+	initTransmuterClient: (wallet: Wallet, connection: Connection) => {
+
 
 		const provider = SolanaProvider.init({
 			connection,
 			wallet,
 		});
-		sdk = TransmuterSDK.load({ provider });
+		let transmuterClient = TransmuterSDK.load({ provider });
 		set((s) => {
-			s.sdk = sdk;
-			console.log(`sdk updated`, s.sdk);
+			s.transmuterClient = transmuterClient;
+			console.log(`sdk updated`, s.transmuterClient);
 		});
 	},
 }));

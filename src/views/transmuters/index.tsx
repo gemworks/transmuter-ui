@@ -69,22 +69,22 @@ export const TransmutersView: FC = ({}) => {
 	const wallet = useWallet();
 	const { connection } = useConnection();
 
-	const sdk = useTransmuterStore((s) => s.sdk);
+	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
 
 	const [transmuters, setTransmuters] = useState<any[]>([]);
-	const { initSDK } = useTransmuterStore();
+	const { initTransmuterClient } = useTransmuterStore();
 
 	useEffect(() => {
-		if (wallet.publicKey && sdk === null) {
-			initSDK(wallet, connection);
+		if (wallet.publicKey && transmuterClient === null) {
+			initTransmuterClient(wallet, connection);
 		}
 	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
-		if (sdk) {
-			getTransmuters(sdk);
+		if (transmuterClient) {
+			getTransmuters(transmuterClient);
 		}
-	}, [sdk])
+	}, [transmuterClient])
 
 	async function getTransmuters(sdk_: TransmuterSDK) {
 		const accounts = await sdk_.programs.Transmuter.account.transmuter.all();
@@ -105,7 +105,7 @@ export const TransmutersView: FC = ({}) => {
 
 
 	async function initTransmuter_() {
-		const { transmuterWrapper, tx } = await sdk.initTransmuter(wallet.publicKey);
+		const { transmuterWrapper, tx } = await transmuterClient.initTransmuter(wallet.publicKey);
 		await tx.confirm();
 	}
 

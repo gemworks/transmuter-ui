@@ -17,6 +17,7 @@
     "@saberhq/anchor-contrib": "^1.12.44",
     "@saberhq/solana-contrib": "^1.12.44",
     "@saberhq/token-utils": "^1.12.44",
+    "@solana/spl-token-registry": "^0.2.2377",
     "@solana/wallet-adapter-base": "^0.9.3",
     "@solana/wallet-adapter-react": "^0.15.3",
     "@solana/wallet-adapter-react-ui": "^0.9.5",
@@ -25,6 +26,7 @@
     "@tailwindcss/aspect-ratio": "^0.4.0",
     "@tailwindcss/typography": "^0.5.0",
     "daisyui": "^1.24.3",
+    "gradient-avatar": "^1.0.2",
     "identicon.js": "^2.3.3",
     "immer": "^9.0.12",
     "next": "12.0.8",
@@ -41,6 +43,7 @@
     "autoprefixer": "^10.4.2",
     "eslint": "8.7.0",
     "eslint-config-next": "12.0.8",
+    "json-loader": "^0.5.7",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.0.15",
     "typescript": "4.5.4"

@@ -7,7 +7,6 @@ import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useAutoConnect } from "../contexts/AutoConnectProvider";
-import Identiction from "identicon.js";
 // Wallet
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
@@ -22,15 +21,7 @@ export const AppBar: FC = (props) => {
 	const [userImage, setUserImage] = useState(""); 
   
 
-  
-	useEffect(() => {
-	  if (wallet.publicKey) {
-		const pk = wallet?.publicKey.toString();
 
-		const identicon = new Identiction(pk).toString();
-		setUserImage(`data:image/png;base64,${identicon}`);
-	  }
-	}, [wallet.publicKey, connection])
 	return (
 		<Disclosure as="nav" className="bg-white shadow">
 			{({ open }) => (

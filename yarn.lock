@@ -461,6 +461,13 @@
   dependencies:
     "buffer" "~6.0.3"
 
+"@solana/spl-token-registry@^0.2.2377":
+  "integrity" "sha512-4ztNcFh3fD2mZMXAwOc4EGfZ2pJwYDRstMpkmU3xO1HeXp5k3Id0EEHXiwR6i3mj6uDExUi60j+iusgLS0DDiA=="
+  "resolved" "https://registry.npmjs.org/@solana/spl-token-registry/-/spl-token-registry-0.2.2377.tgz"
+  "version" "0.2.2377"
+  dependencies:
+    "cross-fetch" "3.0.6"
+
 "@solana/spl-token@^0.1.8":
   "integrity" "sha512-LZmYCKcPQDtJgecvWOgT/cnoIQPWjdH+QVyzPcFvyDUiT0DiRjZaam4aqNUyvchLFhzgunv3d9xOoyE34ofdoQ=="
   "resolved" "https://registry.npmjs.org/@solana/spl-token/-/spl-token-0.1.8.tgz"
@@ -1498,6 +1505,13 @@
   dependencies:
     "node-fetch" "2.6.7"
 
+"cross-fetch@3.0.6":
+  "integrity" "sha512-KBPUbqgFjzWlVcURG+Svp9TlhA5uliYtiNx/0r8nv0pdypeQCRJ9IaSIc3q/x3q8t3F75cHuwxVql1HFGHCNJQ=="
+  "resolved" "https://registry.npmjs.org/cross-fetch/-/cross-fetch-3.0.6.tgz"
+  "version" "3.0.6"
+  dependencies:
+    "node-fetch" "2.6.1"
+
 "cross-spawn@^7.0.2":
   "integrity" "sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w=="
   "resolved" "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.3.tgz"
@@ -2254,6 +2268,15 @@
   "resolved" "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.9.tgz"
   "version" "4.2.9"
 
+"gradient-avatar@^1.0.2":
+  "integrity" "sha512-Od9KI2YImV60wnsvU/u6GEyBm2fiHUUHgiLySE243GYl/T/tiJMJ5QYey8o7tepugmlnUGQRaCItHv19UnUjUg=="
+  "resolved" "https://registry.npmjs.org/gradient-avatar/-/gradient-avatar-1.0.2.tgz"
+  "version" "1.0.2"
+  dependencies:
+    "hsl-rgb" "^1.0.0"
+    "hsl-triad" "^1.0.0"
+    "string-hash" "^1.1.3"
+
 "has-bigints@^1.0.1":
   "integrity" "sha512-LSBS2LjbNBTf6287JEbEzvJgftkF5qFkmCo9hDRpAzKhUOlJ+hx8dd4USs00SgsUNwc4617J9ki5YtEClM2ffA=="
   "resolved" "https://registry.npmjs.org/has-bigints/-/has-bigints-1.0.1.tgz"
@@ -2313,6 +2336,16 @@
     "hash.js" "^1.0.3"
     "minimalistic-assert" "^1.0.0"
     "minimalistic-crypto-utils" "^1.0.1"
+
+"hsl-rgb@^1.0.0":
+  "integrity" "sha512-cNq+7sfwzSDoiG/jiu8wZpOmjScUZrMKiI33tH3aQ1MZsXWQd0yJjMpPwu2OZFYa4D/bOT1aCbB5gS1kOqFx1A=="
+  "resolved" "https://registry.npmjs.org/hsl-rgb/-/hsl-rgb-1.0.0.tgz"
+  "version" "1.0.0"
+
+"hsl-triad@^1.0.0":
+  "integrity" "sha512-PKnjrMugS6sHC5dVh4VQZYOHEKG2QILjVwbpEtNjEV19RyswuIxrIiGhumVJjya/FjK/p9gX6+zRMXFGTvaQAA=="
+  "resolved" "https://registry.npmjs.org/hsl-triad/-/hsl-triad-1.0.0.tgz"
+  "version" "1.0.0"
 
 "identicon.js@^2.3.3":
   "integrity" "sha512-/qgOkXKZ7YbeCYbawJ9uQQ3XJ3uBg9VDpvHjabCAPp6aRMhjLaFAxG90+1TxzrhKaj6AYpVGrx6UXQfQA41UEA=="
@@ -2588,6 +2621,11 @@
   "integrity" "sha512-384Z4keIsJtYpnVggsxaB255MZctILbxv+ihtwoWPF7KNOlYHn1LFpRnUw5qsAspUAA2+I7qzjVJxVYtHVjxNw=="
   "resolved" "https://registry.npmjs.org/jsbi/-/jsbi-4.1.0.tgz"
   "version" "4.1.0"
+
+"json-loader@^0.5.7":
+  "integrity" "sha512-QLPs8Dj7lnf3e3QYS1zkCo+4ZwqOiF9d/nZnYozTISxXWCfNs9yuky5rJw4/W34s7POaNlbZmQGaB5NiXCbP4w=="
+  "resolved" "https://registry.npmjs.org/json-loader/-/json-loader-0.5.7.tgz"
+  "version" "0.5.7"
 
 "json-parse-even-better-errors@^2.3.0":
   "integrity" "sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w=="
@@ -3557,7 +3595,7 @@
   dependencies:
     "safe-buffer" "~5.2.0"
 
-"string-hash@1.1.3":
+"string-hash@^1.1.3", "string-hash@1.1.3":
   "integrity" "sha1-6Kr8CsGFW0Zmkp7X3RJ1311sgRs="
   "resolved" "https://registry.npmjs.org/string-hash/-/string-hash-1.1.3.tgz"
   "version" "1.1.3"

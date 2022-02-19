@@ -8,43 +8,54 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 // Components
 import { RequestAirdrop } from "../../components/RequestAirdrop";
 import pkg from "../../../package.json";
-import Slideover from "../../componnents/SlideOver"
+import Slideover from "../../components/SlideOver"
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import useTransmuterStore from "../../stores/useTransmuterStore";
+import useGembankStore from "../../stores/useGembankStore";
+
+
+
+
 import { PlusIcon } from "@heroicons/react/solid";
 // import { SolanaProvider } from "@saberhq/solana-contrib";
 import { useRouter } from "next/router";
 import { SolanaProvider } from "@saberhq/solana-contrib";
 import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig } from "@gemworks/transmuter-ts";
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import {TransmuterSDK} from "@gemworks/transmuter-ts";
+import { PublicKey } from "@solana/web3.js";
+import {TransmuterSDK, TransmuterWrapper} from "@gemworks/transmuter-ts";
 import { BN } from "@project-serum/anchor";
 import { toBN } from "@gemworks/gem-farm-ts";
 
 
-import {Transmutation} from "../utils/transmuter";
-
 //existing transmuters
 interface BankCardProps {
-	banks: PublicKey[];
+	bank: string;
+	setBank: () => void;
+
 }
-export function BankCard({ banks }: BankCardProps) {
+export function BankCard({ bank, setBank }: BankCardProps) {
+
+
+
+
+
+
 	return (
-		<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
-			{banks.map((item, index) => (
-				<li key={index} className="relative">
+
+				<li className="relative">
 				
-						<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
-							<h2 className="pl-4 pt-4 text-lg font-semibold">Bank {index}</h2>
+						<div
+						onClick={setBank}
+						className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
+							<h2 className="pl-4 pt-4 text-lg font-semibold">Bank {bank}</h2>
 							<button type="button" className="absolute inset-0 focus:outline-none">
 								<span className="sr-only">View details for Bank</span>
 							</button>
 						</div>
 		
 				</li>
-			))}
-		</ul>
+	
 	);
 }
 
@@ -77,15 +88,17 @@ export const TransmuterView: FC = ({}) => {
 	const { connection } = useConnection();
 	const router = useRouter();
 	const { transmuterPublicKey } = router.query;
-	const { initSDK } = useTransmuterStore();
-	const sdk = useTransmuterStore((s) => s.sdk);
+	const { initTransmuterClient } = useTransmuterStore();
+	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
+	const gemBankClient = useGembankStore((s) => s.gemBankClient);
+	const {initGemBankClient} = useGembankStore();
 
-	const [transmuter, setTransmuter] = useState<Transmutation>({});
-	const [banks, setBanks] = useState<PublicKey[]>([]);
+	const [transmuterWrapper, setTransmuterWrapper] = useState<TransmuterWrapper>(null);
+	const [banks, setBanks] = useState<string[]>([]);
+	const [bank, setBank] = useState<string>();
 
 	const [open, setOpen] = useState(false);
 	
-
 	function toggleOpen(): void {
 		if (open) {
 			setOpen(false);
@@ -95,24 +108,58 @@ export const TransmuterView: FC = ({}) => {
 	}
 
 	useEffect(() => {
-		if (wallet.publicKey && sdk === null) {
-			initSDK(wallet, connection);
+		if (wallet.publicKey && transmuterClient === null) {
+			initTransmuterClient(wallet, connection);
+			initGemBankClient(wallet, connection);
+		
+
 		}
 	}, [wallet.publicKey, connection]);
 
 
 	useEffect(() => {
-		if (sdk) {
-			getTransmuter(sdk);
+		if (transmuterClient) {
+			getTransmuter(transmuterClient);
+			initClient();
+		
 		}
-	}, [sdk])
+	}, [transmuterClient])
 
 
 	async function getTransmuter(sdk_: TransmuterSDK) {
 		const transmuterPk = new PublicKey(transmuterPublicKey);
-		const res = await sdk_.programs.Transmuter.account.transmuter.fetch(transmuterPk);
-		setTransmuter(res);
-		setBanks([transmuter.bankA, transmuter.bankB, transmuter.bankC]);
+		const data = await sdk_.programs.Transmuter.account.transmuter.fetch(transmuterPk);
+		const {bankA, bankB, bankC} = data;
+
+		//WRAPPER
+		const transmuterWrapper_ = new TransmuterWrapper(
+			sdk_,
+			transmuterPk,
+			bankA,
+			bankB,
+			bankC,
+			data
+		);
+		// const x = await wrapper.reloadData();
+
+
+		setTransmuterWrapper(transmuterWrapper_);
+
+		setBanks([bankA.toBase58(), bankB.toBase58(), bankC.toBase58()]);
+
+	
+	}
+
+
+
+
+	async function initClient() {
+		const bankPk = new PublicKey("AwDPzG9rSPyeHh8TgXdteMY4tFQghF8CvtVe1eZ2bQnu");
+		const res = await gemBankClient.bankProgram.account.bank.fetch(bankPk);
+		console.log("bank Account: ", res);
+
+		const res_two = await gemBankClient.fetchAllWhitelistProofPDAs(bankPk);
+		console.log("whitelist pdas", res_two);
 	}
 	
 	// async function getMutations(sdk_: any) {
@@ -138,17 +185,33 @@ export const TransmuterView: FC = ({}) => {
 	// }
 
 
+
+
+
+//@TODO 
+//		get the bank using its PK []
+//		bank []
+
+
 	return (
 		<div className="py-10">
-			<Slideover
+					<Slideover
 			open={open}
-			toggleState={() => toggleOpen() }
+			bankPk={bank}
+			transmuterWrapper={transmuterWrapper}
+			toggleState={() => {toggleOpen()}}
+			addToWhitelist={() => {}}
+			removeFromWhitelist={() => {}}
+			addRarities={() => {}}
 			/>
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900">Transmuter {transmuterPublicKey}</h1>
 
 					<button
+					onClick={() => {
+						toggleOpen();
+					}}
 						type="button"
 						className="mt-10 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 					>
@@ -162,7 +225,13 @@ export const TransmuterView: FC = ({}) => {
 					{/* Replace with your content */}
 					<h2 className="text-xl font-bold leading-tight text-gray-700">Banks</h2>
 
-					<BankCard banks={banks}/>
+					<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
+	
+	{banks.map((bank, index) => (
+	<BankCard bank={bank} key={index} setBank={() => {setBank(bank), toggleOpen()}}/>
+	))}
+</ul>
+					
 				</div>
 			</main>
 		</div>
