@@ -5,17 +5,17 @@ import { XIcon } from "@heroicons/react/outline";
 import { PublicKey } from "@solana/web3.js";
 import { TransmuterWrapper } from "@gemworks/transmuter-ts";
 import { RarityConfig, WhitelistType } from "@gemworks/gem-farm-ts";
-import { PlusIcon } from "@heroicons/react/solid";
 import { Icon } from "../components/Icon";
 import useGembankStore from "../stores/useGembankStore";
 import { WhiteListProps } from "../interfaces";
-import { ExclamationCircleIcon } from "@heroicons/react/solid";
 import { useInputState } from "../utils/hooks/hooks";
 import { ToastContainer, toast } from "react-toastify";
+import InputField from './InputField';
 interface SlideOverProps {
 	open: boolean;
 	bankPk: string;
 	transmuterWrapper: TransmuterWrapper;
+	isTransmuterOwner: boolean
 	toggleState: () => void;
 	addToWhitelist: () => void;
 	removeFromWhitelist: () => void;
@@ -78,46 +78,8 @@ export function RadioButtons({ whitelistType, setWhitelistType }: RadioButtonPro
 	);
 }
 
-interface InputFieldProps {
-	publicKey: string;
-	setPublicKey: (e) => void;
-	handlePublicKeyChange: (e: any) => void;
-	resetPublicKey: () => void;
-}
-export function InputField({ publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey }: InputFieldProps) {
-	return (
-		<div>
-			<label htmlFor="email" className="block text-sm font-medium text-gray-700">
-				Token Address
-			</label>
-			<div className="mt-1 relative rounded-md shadow-sm max-w-lg">
-				<input
-					value={publicKey}
-					type="text"
-					name="publicKey"
-					id="publicKey"
-					onChange={(e) => {
-						handlePublicKeyChange(e);
-					}}
-					onPaste={(e) => {
-						const pastedText = e.clipboardData.getData("Text");
-						setPublicKey((existingText: string) => existingText.concat(pastedText));
-						e.preventDefault();
-					}}
-					onCut={(e: any) => {
-						setPublicKey(e.target.value);
-					}}
-					className="text-gray-700 font-medium shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md transition-all duration-150 ease-in"
-					placeholder=""
-					defaultValue=""
-					aria-invalid="true"
-					aria-describedby="publickey-error"
-				/>
-			</div>
-		</div>
-	);
-}
-export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, removeFromWhitelist, addRarities, transmuterWrapper }: SlideOverProps) {
+
+export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, removeFromWhitelist, addRarities, transmuterWrapper, isTransmuterOwner }: SlideOverProps) {
 	const gemBankClient = useGembankStore((s) => s.gemBankClient);
 	const [whiteList, setWhiteList] = useState<WhiteListProps[]>([]);
 	const [whitelistType, setWhitelistType] = useState<WhitelistType>(WhitelistType.Creator);
@@ -125,7 +87,7 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
 
 	useEffect(() => {
-		if (gemBankClient !== null) {
+		if (gemBankClient !== null && bankPk !== undefined && bankPk !== "" ) {
 			main();
 		}
 	}, [bankPk]);
@@ -140,8 +102,11 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 			};
 		});
 		setWhiteList(whitelistPdas_);
-		console.log(whitelistPdas_);
 	}
+
+
+
+	
 	const removeFromBankWhitelist = async (mint: string) => {
 		const { tx } = await transmuterWrapper.removeFromBankWhitelist(new PublicKey(bankPk), new PublicKey(mint));
 		const { response } = await tx.confirm();
@@ -152,19 +117,7 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 		console.log(response.transaction.signatures[0]);
 	}
 
-
-	async function removeFromBankWhitelist_(mint: string) {
-		toast.promise(removeFromBankWhitelist(mint), {
-
-			pending: `Removing ${mint}`,
-			success: `Successfully removed ${mint}`,
-			error: "Something went wrong 😕",
-		}, {
-	position: "bottom-right",
-	});
-	}
-
-	async function addToWhiteList_() {
+	async function addToWhiteList() {
 		const { tx } = await transmuterWrapper.addToBankWhitelist(new PublicKey(bankPk), new PublicKey(publicKey), whitelistType);
 		const { response } = await tx.confirm();
     resetPublicKey();
@@ -196,7 +149,7 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 							leaveTo="translate-x-full"
 						>
 							<div className="w-screen max-w-2xl">
-								<div className="h-1/4 flex flex-col py-6 bg-white shadow-xl">
+								<div className={`${isTransmuterOwner ? "h-1/4" : "h-1/5" } flex flex-col py-6 bg-white shadow-xl justify-between`}>
 									<div className="px-4 sm:px-6">
 										<div className="flex items-start justify-between">
 											<Dialog.Title className="text-lg font-medium text-gray-900">Bank {bankPk}</Dialog.Title>
@@ -213,39 +166,70 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 										</div>
 									</div>
 									<div>
-										<div className="mt-6 relative flex-1 px-4 sm:px-6 overflow-hidden">
-											{/* FORM */}
-											<div className="space-y-6">
-												<InputField publicKey={publicKey} handlePublicKeyChange={handlePublicKeyChange} setPublicKey={setPublicKey} resetPublicKey={resetPublicKey} />
-
-												<RadioButtons whitelistType={whitelistType} setWhitelistType={setWhitelistType} />
-
-												<button
-													onClick={() => {
-														addToWhiteList_();
-													}}
-													disabled={publicKey.length < 15}
-													className="disabled:opacity-25 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 ease-in"
-												>
-													Add Token
-												</button>
-											</div>
+										<div className=" relative flex-1 px-4 sm:px-6 overflow-hidden">
+								
+	{/* FORM */}
+											{isTransmuterOwner && (
+														
+															<div className="space-y-6">
+															<InputField publicKey={publicKey} handlePublicKeyChange={handlePublicKeyChange} setPublicKey={setPublicKey} resetPublicKey={resetPublicKey} />
+			
+															<RadioButtons whitelistType={whitelistType} setWhitelistType={setWhitelistType} />
+			
+															<button
+																onClick={() => {
+																;
+			
+																	toast.promise(addToWhiteList(), {
+			
+																		pending: `Adding ${publicKey}`,
+																		success: `Successfully added ${publicKey}`,
+																		error: "Something went wrong 😕",
+																	}, {
+																position: "bottom-right",
+																});
+																}}
+																disabled={publicKey.length < 15}
+																className="disabled:opacity-25 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 ease-in"
+															>
+																Add Token
+															</button>
+														</div>
+											)}
+								
 											{/* FORM END */}
-
-											<h3 className="font-medium text-gray-900 mt-10">Whitelisted Addresses</h3>
+											<div>
+										
+											</div>
+										
 										</div>
 										{/* /End replace */}
 									</div>
 								</div>
 
-								<div className="h-3/4 flex flex-col py-6 bg-white shadow-xl ">
+								<div className={`${isTransmuterOwner ? "h-3/4" : "h-4/5" } flex flex-col bg-white shadow-xl `}>
+								<h3 className="font-medium text-gray-900  px-4 sm:px-6 py-4">Whitelisted Addresses</h3>
 									<div className="flex-1 flex overflow-hidden">
-										<div className="mt-6 relative flex-1 px-4 sm:px-6 overflow-y-scroll">
-											<div className="mt-5 flex-1 overflow-y-scroll scroll-smooth">
+								
+										<div className="mt-2 relative px-4 sm:px-6  flex-1 overflow-y-scroll">
+											<div className="flex-1   ">
 												{whiteList.map((item, index) => (
-													<ul className="border-t border-b border-gray-200 divide-y divide-gray-200" key={index}>
+													<ul className="border-t border-b border-gray-200 divide-y divide-gray-200 w-full" key={index}>
 														{" "}
-														<Icon publicKey={item.publicKey} whiteListType={item.whiteListType} removeFromWhiteList={() => removeFromBankWhitelist_(item.publicKey)} />
+
+
+
+											
+														<Icon isTransmuterOwner={isTransmuterOwner} publicKey={item.publicKey} whiteListType={item.whiteListType} removeFromWhiteList={() => {
+																toast.promise(removeFromBankWhitelist(item.publicKey), {
+
+																	pending: `Removing ${item.publicKey}`,
+																	success: `Successfully removed ${item.publicKey}`,
+																	error: "Something went wrong 😕",
+																}, {
+															position: "bottom-right",
+															});
+														}} />
 													</ul>
 												))}
 											</div>

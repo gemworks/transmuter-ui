@@ -9,20 +9,20 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { RequestAirdrop } from "../../components/RequestAirdrop";
 import pkg from "../../../package.json";
 import Slideover from "../../components/SlideOver"
+import TransferOwnership from "../../components/TransferOwnership";
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 import useGembankStore from "../../stores/useGembankStore";
 
-
-
+import {prepareMutation} from "../../utils/mutations";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
 import { PlusIcon } from "@heroicons/react/solid";
 // import { SolanaProvider } from "@saberhq/solana-contrib";
 import { useRouter } from "next/router";
 import { SolanaProvider } from "@saberhq/solana-contrib";
 import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig } from "@gemworks/transmuter-ts";
-import { PublicKey } from "@solana/web3.js";
 import { TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
 import { BN } from "@project-serum/anchor";
 import { toBN } from "@gemworks/gem-farm-ts";
@@ -98,6 +98,10 @@ export const TransmuterView: FC = ({ }) => {
 	const [bank, setBank] = useState<string>();
 
 	const [open, setOpen] = useState(false);
+	const [modalIsOpen, setModalIsOpen] = useState(false);
+	const [transmuterOwner, setTransmuterOwner] = useState<PublicKey>();
+
+	const [mutations, setMutations] = useState<any[]>([]);
 
 	function toggleOpen(): void {
 		if (open) {
@@ -107,7 +111,16 @@ export const TransmuterView: FC = ({ }) => {
 		}
 	}
 
+	function toggleModalOpen(): void {
+		if (modalIsOpen) {
+			setModalIsOpen(false);
+		} else {
+			setModalIsOpen(true);
+		}
+	}
+
 	useEffect(() => {
+		console.log("wallet_useffect");
 		if (wallet.publicKey && transmuterClient === null) {
 			initTransmuterClient(wallet, connection);
 			initGemBankClient(wallet, connection);
@@ -118,21 +131,23 @@ export const TransmuterView: FC = ({ }) => {
 
 
 	useEffect(() => {
+		console.log("transmuter_useffect");
 		if (transmuterClient) {
 			getTransmuter(transmuterClient);
+			getMutationsByTransmuter(transmuterClient);
 
 		}
 	}, [transmuterClient])
 
 
-	async function getTransmuter(sdk_: TransmuterSDK) {
+	async function getTransmuter(transmuterClient: TransmuterSDK) {
 		const transmuterPk = new PublicKey(transmuterPublicKey);
-		const data = await sdk_.programs.Transmuter.account.transmuter.fetch(transmuterPk);
-		const { bankA, bankB, bankC } = data;
-
+		const data = await transmuterClient.programs.Transmuter.account.transmuter.fetch(transmuterPk);
+		const { bankA, bankB, bankC, owner } = data;
+		setTransmuterOwner(owner);
 		//WRAPPER
 		const transmuterWrapper_ = new TransmuterWrapper(
-			sdk_,
+			transmuterClient,
 			transmuterPk,
 			bankA,
 			bankB,
@@ -140,7 +155,7 @@ export const TransmuterView: FC = ({ }) => {
 			data
 		);
 		// const x = await wrapper.reloadData();
-
+		
 
 		setTransmuterWrapper(transmuterWrapper_);
 
@@ -148,74 +163,107 @@ export const TransmuterView: FC = ({ }) => {
 
 
 	}
+	async function getMutationsByTransmuter(transmuterClient: TransmuterSDK) {
+		const accounts = await transmuterClient.programs.Transmuter.account.mutation.all();
+		const mutations = accounts.filter((account) => account.account.transmuter.toBase58() == transmuterPublicKey);
+		let {name} = mutations[0].account;
+		const str = String.fromCharCode.apply(null, new Uint8Array(name));
+		console.log("my mutations", mutations);
+		setMutations(mutations);
+	
+		
+
+	
 
 
-
-
-	async function initClient() {
-		const bankPk = new PublicKey("AwDPzG9rSPyeHh8TgXdteMY4tFQghF8CvtVe1eZ2bQnu");
-		const res = await gemBankClient.bankProgram.account.bank.fetch(bankPk);
-		console.log("bank Account: ", res);
-
-		const res_two = await gemBankClient.fetchAllWhitelistProofPDAs(bankPk);
-		console.log("whitelist pdas", res_two);
 	}
 
-	// async function getMutations(sdk_: any) {
-	// 	const transmuter = new PublicKey(transmuterPublicKey);
-	// 	const accounts = await sdk_.programs.Transmuter.account.mutation.fetch(transmuter);
-	// 	console.log("accounts",accounts);
-
-	// 	// const transmuters = accounts.filter((account) => account.account.owner.toBase58() == wallet.publicKey.toBase58());
-	// 	// setTransmuters(transmuters);
-	// }
-
-	// async function initMutaton_() {
-	// 	const config = {
-	// 		takerTokenA:
-	// 		makerTokenA:
-	// 	}
-	// 	const res = await sdk.initMutation(
-	// 		"",
-	// 		transmuter: new PublicKey(transmuterPublicKey),
-	// 		10,
-
-	// 		)
-	// }
+	
+	async function transferTransmuterOwnership(newOwner: string) {
+		const {tx} = await transmuterWrapper.updateTransmuter(new PublicKey(newOwner));
+		const res = await tx.confirm();
+	
+	}
 
 
-
-
-
-	//@TODO 
-	//		get the bank using its PK []
-	//		bank []
-
+	async function createMutation() {
+		try {
+			
+	
+			await prepareMutation({
+				sdk: transmuterClient,
+				transmuter: transmuterWrapper,
+				mutationName: "NFT Burn",
+				vaultAction: VaultAction.Lock,
+				mutationDurationSec: toBN(0),
+				takerTokenB: null,
+				takerTokenC: null,
+				reversible: false, 
+				uses: toBN(99),
+				mutationInitError: undefined,
+				reversalPriceLamports: toBN(LAMPORTS_PER_SOL),
+				makerMintA: null,
+				makerMintB: null,
+				makerMintC: null,
+				makerTokenAmount: toBN(0),
+				takerTokenAmount: toBN(0),
+				makerTokenAmountPerUse: toBN(0),
+			
+				
+			});
+		} catch(err) {
+			console.log("ERROR", err)
+		}
+	}
 
 	return (
 		<div className="py-10">
 			<Slideover
 				open={open}
 				bankPk={bank}
+				isTransmuterOwner={transmuterOwner === wallet.publicKey}
 				transmuterWrapper={transmuterWrapper}
 				toggleState={() => { toggleOpen() }}
 				addToWhitelist={() => { }}
 				removeFromWhitelist={() => { }}
 				addRarities={() => { }}
 			/>
+			<TransferOwnership
+			
+			isOpen={modalIsOpen}
+			toggleModal={() => {toggleModalOpen()}}
+			transferOwnership={() => {}}
+			/>
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<h1 className="text-3xl font-bold leading-tight text-gray-900">Transmuter {transmuterPublicKey}</h1>
+					<div className="space-y-2">
+					<span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium ${transmuterOwner === wallet.publicKey ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+        {transmuterOwner === wallet.publicKey ? "You're Transmuter Owner" : "Not the Transmuter Owner"}
+      </span>
+					<h1 className="text-2xl font-bold leading-tight text-gray-900">Transmuter {transmuterPublicKey}</h1>
+
+					</div>
+
 
 					<button
 						onClick={() => {
-							toggleOpen();
+						createMutation();
 						}}
 						type="button"
 						className="mt-10 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 					>
 						<PlusIcon className="-ml-1 mr-3 h-5 w-5" aria-hidden="true" />
-						Button text
+						create new mutation
+					</button>
+					<button
+						onClick={() => {
+							toggleModalOpen()
+						}}
+						type="button"
+						className="mt-10 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+					>
+						<PlusIcon className="-ml-1 mr-3 h-5 w-5" aria-hidden="true" />
+						transfer transmuter ownership
 					</button>
 				</div>
 			</header>
@@ -230,6 +278,8 @@ export const TransmuterView: FC = ({ }) => {
 							<BankCard bank={bank} key={index} setBank={() => { setBank(bank), toggleOpen() }} />
 						))}
 					</ul>
+
+					<h2 className="text-xl font-bold leading-tight text-gray-700">Mutations</h2>
 
 				</div>
 			</main>
