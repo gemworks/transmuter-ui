@@ -28,7 +28,7 @@ export function TransmuterCard({ items }: TransmuterCardProps) {
 				<li key={index} className="relative">
 					<Link href={`/transmuter/${item?.publicKey.toBase58()}`}>
 						<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
-							<h2 className="pl-4 pt-4 text-lg font-semibold">Transmuter {index}</h2>
+							<h2 className="pl-4 pt-4 text-lg font-semibold">Transmuter {item?.publicKey.toBase58()}</h2>
 							{/* <img src={file.source} alt="" className="object-cover pointer-events-none group-hover:opacity-75" /> */}
 							<button type="button" className="absolute inset-0 focus:outline-none">
 								<span className="sr-only">View details for {item.title}</span>
@@ -90,7 +90,7 @@ export const TransmutersView: FC = ({}) => {
 		const accounts = await sdk_.programs.Transmuter.account.transmuter.all();
 
 		const transmuters = accounts.filter((account) => account.account.owner.toBase58() == wallet.publicKey.toBase58());
-
+		transmuters.forEach(transmuter => console.log(transmuter.account.owner.toBase58()))
 		setTransmuters(transmuters);
 	}
 

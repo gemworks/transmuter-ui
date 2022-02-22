@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 export const useInputState = (initiaVal: string): any => {
 	const [input, setInput] = useState(initiaVal);
@@ -6,7 +6,7 @@ export const useInputState = (initiaVal: string): any => {
 		setInput(e.target.value);
 	};
 	const reset = () => {
-		setInput('');
+		setInput("");
 	};
 	return [input, handleChange, setInput, reset] as const;
 };

@@ -1,14 +1,15 @@
 interface InputFieldProps {
 	publicKey: string;
+	inputFieldTitle: string;
 	setPublicKey: (e) => void;
 	handlePublicKeyChange: (e: any) => void;
 	resetPublicKey: () => void;
 }
-export default function InputField({ publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey }: InputFieldProps) {
+export default function InputField({ publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey, inputFieldTitle }: InputFieldProps) {
 	return (
 		<div>
 			<label htmlFor="email" className="block text-sm font-medium text-gray-700">
-				Token Address
+				{inputFieldTitle}
 			</label>
 			<div className="mt-1 relative rounded-md shadow-sm max-w-lg">
 				<input
@@ -29,7 +30,6 @@ export default function InputField({ publicKey, handlePublicKeyChange, setPublic
 					}}
 					className="text-gray-700 font-medium shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md transition-all duration-150 ease-in"
 					placeholder=""
-					defaultValue=""
 					aria-invalid="true"
 					aria-describedby="publickey-error"
 				/>

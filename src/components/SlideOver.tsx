@@ -114,7 +114,6 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 		if (response) {
 			await main();
 		}
-		console.log(response.transaction.signatures[0]);
 	}
 
 	async function addToWhiteList() {
@@ -124,7 +123,6 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 		if (response) {
 			await main();
 		}
-		console.log(response.transaction.signatures[0]);
 	}
 	return (
 		<>
@@ -172,7 +170,7 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 											{isTransmuterOwner && (
 														
 															<div className="space-y-6">
-															<InputField publicKey={publicKey} handlePublicKeyChange={handlePublicKeyChange} setPublicKey={setPublicKey} resetPublicKey={resetPublicKey} />
+															<InputField inputFieldTitle={"Token Address"} publicKey={publicKey} handlePublicKeyChange={handlePublicKeyChange} setPublicKey={setPublicKey} resetPublicKey={resetPublicKey} />
 			
 															<RadioButtons whitelistType={whitelistType} setWhitelistType={setWhitelistType} />
 			
