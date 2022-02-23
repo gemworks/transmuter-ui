@@ -1,18 +1,21 @@
 import { SolanaProvider } from "@saberhq/solana-contrib";
 import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig } from "@gemworks/transmuter-ts";
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, Keypair } from "@solana/web3.js";
 import { BN } from "@project-serum/anchor";
 import { TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
 import { toBN } from "@gemworks/gem-farm-ts";
+import { getATAAddress } from "@saberhq/token-utils";
 
 export const prepareMutation = async ({
 	sdk,
 	transmuter,
 	mutationName = "default",
+	owner,
 	vaultAction = VaultAction.Lock,
 	mutationDurationSec = toBN(0),
 	takerTokenB = null,
 	takerTokenC = null,
+	makerTokenAmountPerUse = toBN(0),
 	makerTokenBAmountPerUse = null,
 	makerTokenCAmountPerUse = null,
 	reversible = false,
@@ -24,15 +27,17 @@ export const prepareMutation = async ({
 	makerMintC,
 	makerTokenAmount = toBN(0),
 	takerTokenAmount = toBN(0),
-	makerTokenAmountPerUse = toBN(0),
+
 }: {
 	sdk: TransmuterSDK;
 	transmuter: TransmuterWrapper;
 	mutationName: string;
+	owner: PublicKey;
 	vaultAction?: any;
 	mutationDurationSec?: BN;
 	takerTokenB?: TakerTokenConfig;
 	takerTokenC?: TakerTokenConfig;
+	makerTokenAmountPerUse: BN;
 	makerTokenBAmountPerUse?: BN;
 	makerTokenCAmountPerUse?: BN;
 	reversible?: boolean;
@@ -44,18 +49,42 @@ export const prepareMutation = async ({
 	makerMintC?: PublicKey;
 	makerTokenAmount: BN;
 	takerTokenAmount: BN;
-	makerTokenAmountPerUse: BN;
+
 }) => {
 	// create any relevant maker mints
 	let rest: any;
-	[makerMintA, rest]  = await sdk.createMintAndATA(makerTokenAmount);
-	if (makerTokenBAmountPerUse) {
-		[makerMintB, rest] = await sdk.createMintAndATA(makerTokenBAmountPerUse.mul(uses));
-	}
-	if (makerTokenCAmountPerUse) {
-		[makerMintC, rest] = await sdk.createMintAndATA(makerTokenCAmountPerUse.mul(uses));
-	}
+	// [makerMintA, rest]  = await sdk.createMintAndATA(makerTokenAmount);
+	// if (makerTokenBAmountPerUse) {
+	// 	[makerMintB, rest] = await sdk.createMintAndATA(makerTokenBAmountPerUse.mul(uses));
+	// }
+	// if (makerTokenCAmountPerUse) {
+	// 	[makerMintC, rest] = await sdk.createMintAndATA(makerTokenCAmountPerUse.mul(uses));
+	// }
 
+	// makerMintA = await getATAAddress({
+	// 	mint: makerMintA,
+	// 	owner: owner,
+	// });
+
+
+	
+
+
+	// if (makerMintB) {
+	// 	makerMintB = await getATAAddress({
+	// 		mint: makerMintB,
+	// 		owner: owner,
+	// 	});
+	// }
+	// if (makerMintC) {
+	// 	makerMintB = await getATAAddress({
+	// 		mint: makerMintC,
+	// 		owner: owner,
+	// 	});
+	// }
+
+
+	// console.log({a: makerMintA.toBase58(), b: makerMintB.toBase58(), c: makerMintC.toBase58()})
 	const config: MutationConfig = {
 		takerTokenA: {
 			gemBank: transmuter.bankA,
@@ -72,7 +101,7 @@ export const prepareMutation = async ({
 		},
 		makerTokenB: makerTokenBAmountPerUse
 			? {
-					mint: new PublicKey(makerMintB),
+					mint: makerMintB,
 					totalFunding: makerTokenBAmountPerUse.mul(uses),
 					amountPerUse: makerTokenBAmountPerUse,
 			  }
@@ -91,10 +120,14 @@ export const prepareMutation = async ({
 		mutationDurationSec,
 		reversible,
 	};
-
-	const { mutationWrapper, tx } = await sdk.initMutation(config, transmuter.key, uses, undefined, mutationName);
+	console.log("config",config);
+	//thesis: true
+	console.log("test", config.makerTokenB && config.makerTokenB.mint);
+	const { mutationWrapper, tx } = await sdk.initMutation(config, transmuter.key, uses, owner, mutationName);
 	console.log("mutation", { mutationWrapper, tx });
-	await tx.confirm();
+
+	const res = await tx.confirm();
+	console.log("res", res);
 	// setup & fill up any relevant taker vaults
 	// ({ vault: takerVaultA, takerMint: takerMintA, takerAcc: takerAccA } = await prepareTakerVaults(transmuter.bankA));
 	// if (takerTokenB) {

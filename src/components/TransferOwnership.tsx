@@ -25,8 +25,11 @@ export default function TransferOwnership({ isOpen, toggleModal, transmuterWrapp
   },[open, setOpen])
 
 	async function transferTransmuterOwnership(newOwner: string) {
-		const { tx } = await transmuterWrapper.updateTransmuter(new PublicKey(newOwner));
-		await tx.confirm();
+	
+			const { tx } = await transmuterWrapper.updateTransmuter(new PublicKey(newOwner));
+			await tx.confirm();
+	
+	
 	}
 
 	async function transferTransmuterOwnership_() {

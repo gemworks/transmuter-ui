@@ -13,7 +13,7 @@ import pkg from "../../../package.json";
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import { PlusIcon } from "@heroicons/react/solid";
 import useTransmuterStore from "../../stores/useTransmuterStore";
-import {TransmuterSDK} from "@gemworks/transmuter-ts";
+import { TransmuterSDK } from "@gemworks/transmuter-ts";
 import { SolanaProvider } from "@saberhq/solana-contrib";
 import { PublicKey } from "@solana/web3.js";
 
@@ -81,16 +81,18 @@ export const TransmutersView: FC = ({}) => {
 	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
-		if (transmuterClient) {
+		if (transmuterClient && wallet.publicKey && transmuterClient !== null) {
 			getTransmuters(transmuterClient);
+		} else {
+			setTransmuters([]);
 		}
-	}, [transmuterClient])
+	}, [transmuterClient, wallet.publicKey, connection]);
 
 	async function getTransmuters(sdk_: TransmuterSDK) {
 		const accounts = await sdk_.programs.Transmuter.account.transmuter.all();
 
 		const transmuters = accounts.filter((account) => account.account.owner.toBase58() == wallet.publicKey.toBase58());
-		transmuters.forEach(transmuter => console.log(transmuter.account.owner.toBase58()))
+		transmuters.forEach((transmuter) => console.log(transmuter.account.owner.toBase58()));
 		setTransmuters(transmuters);
 	}
 
@@ -103,10 +105,13 @@ export const TransmutersView: FC = ({}) => {
 	// 	return TransmuterSDK.load({ provider });
 	// };
 
-
 	async function initTransmuter_() {
-		const { transmuterWrapper, tx } = await transmuterClient.initTransmuter(wallet.publicKey);
-		await tx.confirm();
+		const { tx } = await transmuterClient.initTransmuter(wallet.publicKey);
+
+		const res = await tx.confirm();
+		if (res?.signature) {
+			getTransmuters(transmuterClient);
+		}
 	}
 
 	return (

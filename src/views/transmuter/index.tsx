@@ -8,8 +8,9 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 // Components
 import { RequestAirdrop } from "../../components/RequestAirdrop";
 import pkg from "../../../package.json";
-import Slideover from "../../components/SlideOver"
+import Slideover from "../../components/BankSidebar"
 import TransferOwnership from "../../components/TransferOwnership";
+import CreateMutationSidebar from "../../components/CreateMutationSidebar";
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import useTransmuterStore from "../../stores/useTransmuterStore";
@@ -22,10 +23,10 @@ import { PlusIcon, UsersIcon,  PlusSmIcon as PlusSmIconSolid } from "@heroicons/
 // import { SolanaProvider } from "@saberhq/solana-contrib";
 import { useRouter } from "next/router";
 import { SolanaProvider } from "@saberhq/solana-contrib";
-import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig } from "@gemworks/transmuter-ts";
-import { TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
+import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
 import { BN } from "@project-serum/anchor";
 import { toBN } from "@gemworks/gem-farm-ts";
+import BankSidebar from "../../components/BankSidebar";
 
 
 //existing transmuters
@@ -167,10 +168,10 @@ export const TransmuterView: FC = ({ }) => {
 	async function getMutationsByTransmuter(transmuterClient: TransmuterSDK) {
 		const accounts = await transmuterClient.programs.Transmuter.account.mutation.all();
 		const mutations = accounts.filter((account) => account.account.transmuter.toBase58() == transmuterPublicKey);
-		// let {name} = mutations[0].account;
+		// let {name} = mutations[2].account;
 		// const str = String.fromCharCode.apply(null, new Uint8Array(name));
-		console.log("my mutations", mutations);
 		setMutations(mutations);
+		console.log(mutations)
 	
 		
 
@@ -184,26 +185,36 @@ export const TransmuterView: FC = ({ }) => {
 
 	async function createMutation() {
 		try {
-			
-	
 			await prepareMutation({
 				sdk: transmuterClient,
 				transmuter: transmuterWrapper,
-				mutationName: "NFT Burn",
+				mutationName: "Solantasy Swap",
+				owner: wallet.publicKey,
 				vaultAction: VaultAction.Lock,
 				mutationDurationSec: toBN(0),
-				takerTokenB: null,
-				takerTokenC: null,
 				reversible: false, 
-				uses: toBN(99),
-				mutationInitError: undefined,
+				uses: toBN(3),
 				reversalPriceLamports: toBN(LAMPORTS_PER_SOL),
-				makerMintA: null,
-				makerMintB: null,
-				makerMintC: null,
-				makerTokenAmount: toBN(0),
-				takerTokenAmount: toBN(0),
-				makerTokenAmountPerUse: toBN(0),
+				makerMintA: new PublicKey("4LcBQBVK9Y2DMc2n9hbrY16hLzzpqucDCe3p4UFqLCku"),
+				makerMintB: new PublicKey("DoPnWBVs8eHcCBPWnjeqhUATAekyAnmZXP8Sjn1Ma297"),
+				// makerMintC: new PublicKey("DgUQD9WkJAfW1WDfHNKo6RiT58FZiosCKPgRfA9Xx59Z"),
+				takerTokenB: {
+					gemBank: transmuterWrapper.bankB,
+					requiredAmount: toBN(5000),
+					requiredUnits: RequiredUnits.RarityPoints,
+					vaultAction: VaultAction.Lock
+				},
+				takerTokenC: {
+					gemBank: transmuterWrapper.bankC,
+					requiredAmount: toBN(5000),
+					requiredUnits: RequiredUnits.RarityPoints,
+					vaultAction: VaultAction.Lock
+				},
+				makerTokenAmount: toBN(15000),
+				takerTokenAmount: toBN(5000),
+				makerTokenAmountPerUse: toBN(5000),
+				makerTokenBAmountPerUse: toBN(5000),
+				// makerTokenCAmountPerUse: toBN(5000),
 			
 				
 			});
@@ -214,7 +225,7 @@ export const TransmuterView: FC = ({ }) => {
 
 	return (
 		<div className="py-10">
-			<Slideover
+			<BankSidebar
 				open={open}
 				bankPk={bank}
 				isTransmuterOwner={transmuterOwner?.toBase58() === wallet.publicKey?.toBase58()}
@@ -223,6 +234,10 @@ export const TransmuterView: FC = ({ }) => {
 				addToWhitelist={() => { }}
 				removeFromWhitelist={() => { }}
 				addRarities={() => { }}
+			/>
+			<CreateMutationSidebar
+				open={true}
+				toggleState={() => {}}
 			/>
 			<TransferOwnership
 			transmuterWrapper={transmuterWrapper}

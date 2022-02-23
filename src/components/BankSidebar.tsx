@@ -5,7 +5,7 @@ import { XIcon } from "@heroicons/react/outline";
 import { PublicKey } from "@solana/web3.js";
 import { TransmuterWrapper } from "@gemworks/transmuter-ts";
 import { RarityConfig, WhitelistType } from "@gemworks/gem-farm-ts";
-import { Icon } from "../components/Icon";
+import { Icon } from "./Icon";
 import useGembankStore from "../stores/useGembankStore";
 import { WhiteListProps } from "../interfaces";
 import { useInputState } from "../utils/hooks/hooks";
@@ -79,7 +79,7 @@ export function RadioButtons({ whitelistType, setWhitelistType }: RadioButtonPro
 }
 
 
-export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, removeFromWhitelist, addRarities, transmuterWrapper, isTransmuterOwner }: SlideOverProps) {
+export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist, removeFromWhitelist, addRarities, transmuterWrapper, isTransmuterOwner }: SlideOverProps) {
 	const gemBankClient = useGembankStore((s) => s.gemBankClient);
 	const [whiteList, setWhiteList] = useState<WhiteListProps[]>([]);
 	const [whitelistType, setWhitelistType] = useState<WhitelistType>(WhitelistType.Creator);
@@ -119,6 +119,7 @@ export default function SlideOver({ open, toggleState, bankPk, addToWhitelist, r
 	async function addToWhiteList() {
 		const { tx } = await transmuterWrapper.addToBankWhitelist(new PublicKey(bankPk), new PublicKey(publicKey), whitelistType);
 		const { response } = await tx.confirm();
+		console.log(response);
     resetPublicKey();
 		if (response) {
 			await main();
