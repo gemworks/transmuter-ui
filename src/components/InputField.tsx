@@ -22,7 +22,7 @@ export default function InputField({ publicKey, handlePublicKeyChange, setPublic
 					}}
 					onPaste={(e) => {
 						const pastedText = e.clipboardData.getData("Text");
-						setPublicKey((existingText: string) => existingText.concat(pastedText));
+						setPublicKey(pastedText);
 						e.preventDefault();
 					}}
 					onCut={(e: any) => {

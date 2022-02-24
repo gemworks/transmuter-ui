@@ -4,22 +4,125 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XIcon } from '@heroicons/react/outline'
 import { LinkIcon, PlusSmIcon, QuestionMarkCircleIcon } from '@heroicons/react/solid'
 import { Switch } from '@headlessui/react'
-
+import { useInputState } from '../utils/hooks/hooks';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
+interface VaultProps {
+  name: string;
+  type: "Maker" | "Taker";
+  tokenMintAddress: string;
+  setTokenMintAddress: (e) => void;
+  handleTokenMintAddressChange: (e: any) => void;
+  amountPerUse: number;
+  setAmountPerUse: (e) => void;
+  handleAmountPerUseChange: (e: any) => void;
+  totalFunding: number;
+  setTotalFunding: (e) => void;
+  handleTotalFundingChange: (e: any) => void;
+
+}
+export function Vault({name, type, tokenMintAddress, setTokenMintAddress, handleTokenMintAddressChange, amountPerUse, handleAmountPerUseChange, totalFunding, setTotalFunding, handleTotalFundingChange}: VaultProps) {
+
+  return (
+      
+             <div className="space-y-3 py-5">
+             <label
+          htmlFor="project-name"
+          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2 px-4  sm:px-6"
+        >
+          {type} Vault {name}
+        </label>
+          <div className="px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6">
+      <div>
+        <label
+          htmlFor="project-name"
+          className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
+        >
+          Token Mint Address
+        </label>
+      </div>
+      <div className="sm:col-span-2">
+        <input
+          value={tokenMintAddress}
+          onChange={(e) => {
+            handleTokenMintAddressChange(e);
+          }}
+          onPaste={(e) => {
+            const pastedText = e.clipboardData.getData("Text");
+            setTokenMintAddress(pastedText);
+            e.preventDefault();
+          }}
+          onCut={(e: any) => {
+						setTokenMintAddress(e.target.value);
+					}}
+          type="text"
+          name="project-name"
+          id="project-name"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+    </div>
+          <div className="px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6">
+      <div>
+        <label
+          htmlFor="project-name"
+          className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
+        >
+          Amount per use
+        </label>
+      </div>
+      <div className="sm:col-span-2">
+        <input
+              value={tokenMintAddress}
+              onChange={(e) => {
+                handleTokenMintAddressChange(e);
+              }}
+              onPaste={(e) => {
+                const pastedText = e.clipboardData.getData("Text");
+                setTokenMintAddress(pastedText);
+                e.preventDefault(); 
+              }}
+              type="number"
+          name="project-name"
+          id="project-name"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+    </div>
+          <div className=" px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6">
+      <div>
+        <label
+          htmlFor="project-name"
+          className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
+        >
+          Total Funding
+        </label>
+      </div>
+      <div className="sm:col-span-2">
+        <input
+          type="text"
+          name="project-name"
+          id="project-name"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+    </div>
+    </div>
+  )
+}
 
 interface ToggleSwitchProps {
-	enabled: boolean;
-	toggleSwitch: (switched) => void;
+  enabled: boolean;
+  toggleSwitch: (switched) => void;
 }
-export function ToggleSwitch({ enabled, toggleSwitch}: ToggleSwitchProps) {
+export function ToggleSwitch({ enabled, toggleSwitch }: ToggleSwitchProps) {
 
 
   return (
-<Switch
+    <Switch
       checked={enabled}
       onChange={toggleSwitch}
       className={classNames(
@@ -67,8 +170,8 @@ export function ToggleSwitch({ enabled, toggleSwitch}: ToggleSwitchProps) {
   )
 }
 interface CreateMutationSidebarProps {
-	open: boolean;
-	toggleState: () => void;
+  open: boolean;
+  toggleState: () => void;
 }
 const team = [
   {
@@ -110,19 +213,20 @@ const team = [
 
 export default function CreateMutationSidebar({ open, toggleState }: CreateMutationSidebarProps) {
 
-	const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const vaults = ["A", "B", "C"];
 
-	function toggleSwitch() {
+  function toggleSwitch() {
 
-		if (!enabled) {
-			setEnabled(true);
-		} else {
+    if (!enabled) {
+      setEnabled(true);
+    } else {
       setEnabled(false);
     }
-   
-		
-	
-	}
+
+
+
+  }
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -130,7 +234,7 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
         <div className="absolute inset-0 overflow-hidden">
           <Dialog.Overlay className="absolute inset-0" />
 
-          <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16">
+          <div className="pointer-events-none fixed inset-y-0 right-0 flex  pl-10 sm:pl-16">
             <Transition.Child
               as={Fragment}
               enter="transform transition ease-in-out duration-500 sm:duration-700"
@@ -166,7 +270,7 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                     </div>
 
                     {/* Divider container */}
-                    <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0">
+                    <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0 text-gray-900" >
                       {/* Project name */}
                       <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
@@ -174,7 +278,7 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                             htmlFor="project-name"
                             className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                           >
-                        Mutation Name
+                            Mutation Name
                           </label>
                         </div>
                         <div className="sm:col-span-2">
@@ -187,7 +291,7 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                         </div>
                       </div>
 
-                 
+
 
                       {/* Vault Action */}
                       <fieldset>
@@ -210,7 +314,7 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                                 </div>
                                 <div className="pl-7 text-sm">
                                   <label htmlFor="public-access" className="font-medium text-gray-900">
-									Do nothing
+                                    Do nothing
                                   </label>
                                   <p id="public-access-description" className="text-gray-500">
                                     Omits this property
@@ -229,7 +333,7 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                                 </div>
                                 <div className="pl-7 text-sm">
                                   <label htmlFor="restricted-access" className="font-medium text-gray-900">
-                                	Lock
+                                    Lock
                                   </label>
                                   <p id="restricted-access-description" className="text-gray-500">
                                     Locks the tokens, deposited by the taker.
@@ -248,33 +352,33 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                                 </div>
                                 <div className="pl-7 text-sm">
                                   <label htmlFor="private-access" className="font-medium text-gray-900">
-								Change Owner
+                                    Change Owner
                                   </label>
                                   <p id="private-access-description" className="text-gray-500">
-                                   Lets you reassign the tokens, deposited by the taker, to yourself
+                                    Lets you reassign the tokens, deposited by the taker, to yourself
                                   </p>
                                 </div>
                               </div>
                             </div>
                             {/* <hr className="border-gray-200" /> */}
-                            
+
                           </div>
                         </div>
                       </fieldset>
 
-				
-						           {/* Mutation Duration */}
-								   <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
+
+                      {/* Mutation Duration */}
+                      <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
                         <div>
                           <label
                             htmlFor="project-name"
                             className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                           >
-                        Mutation Duration
+                            Mutation Duration
                           </label>
-						  <p id="private-access-description" className="text-gray-500 text-sm mt-1">
-                                   Specify the duration of the mutation execution, in seconds.
-                                  </p>
+                          <p id="private-access-description" className="text-gray-500 text-sm mt-1">
+                            Specify the duration of the mutation execution, in seconds.
+                          </p>
                         </div>
                         <div className="sm:col-span-2">
                           <input
@@ -287,73 +391,104 @@ export default function CreateMutationSidebar({ open, toggleState }: CreateMutat
                       </div>
 
 
-					
-							           {/* Mutation Reversal */}
-									   <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
+
+                      {/* Mutation Reversal */}
+                      <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
                         <div>
                           <label
                             htmlFor="project-name"
                             className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                           >
-                        Reverse Mutations
+                            Reverse Mutations
                           </label>
-						  <p id="private-access-description" className="text-gray-500 text-sm mt-1">
-                                   Allowing this, lets the taker reverse the mutation, transfering back the deposited & received tokens.
-                                  </p>
+                          <p id="private-access-description" className="text-gray-500 text-sm mt-1">
+                            Allowing this, lets the taker reverse the mutation, transfering back the deposited & received tokens.
+                          </p>
                         </div>
                         <div className="sm:col-span-2">
-						<ToggleSwitch enabled={enabled} toggleSwitch={() => {toggleSwitch()}}/>
+                          <ToggleSwitch enabled={enabled} toggleSwitch={() => { toggleSwitch() }} />
                         </div>
                       </div>
 
-                           {/* Reversal Lamport Button */}
-                  {enabled && (
-    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
-    <div>
-      <label
-        htmlFor="project-name"
-        className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-      >
-    Reverse Price
-      </label>
-<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-              Specify the price in SOL, a taker has to be in case of reversing a mutation. 
-              </p>
-    </div>
-    <div className="sm:col-span-2">
-    <div>
+                      {/* Reversal Lamport Button */}
+        
+                        <div className={`space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center ${!enabled && "opacity-50"} transition-all duration-150 ease-in `}>
+                          <div>
+                            <label
+                              htmlFor="project-name"
+                              className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                            >
+                              Reverse Price
+                            </label>
+                            <p id="private-access-description" className="text-gray-500 text-sm mt-1">
+                              Specify the price in SOL, a taker has to be in case of reversing a mutation.
+                            </p>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <div>
 
-<div className="mt-1 relative rounded-md shadow-sm">
-<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
-</div>
-<input
-type="text"
-name="price"
-id="price"
-className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
-placeholder="0.00"
-aria-describedby="price-currency"
-/>
-<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="mt-1 relative rounded-md shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
+                                </div>
+                                <input
+                                  disabled={!enabled}
+                                  type="text"
+                                  name="price"
+                                  id="price"
+                                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
+                                  placeholder="0.00"
+                                  aria-describedby="price-currency"
+                                />
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
 
 
 
-</div>
-</div>
-</div>
-    </div>
-  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
-                  )}
-                       
-                  
-		
+                   
+                              {/* Maker Vaults */}
+        <div className="space-y-1 px-4  sm:px-6 sm:py-5 items-center">
+                        <div>
+                          <label
+                            htmlFor="project-name"
+                            className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                          >
+                            Maker Vaults
+                          </label>
+                          <p id="private-access-description" className="text-gray-500 text-sm mt-1">
+                           Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful execution of the respective mutation.
+                          </p>
+                        </div>
+                        {vaults.map(vault => 
+                          <Vault name={vault} type="Maker"/>
+                        )}
+                          
+                      </div>
 
-				
-                    </div>
-                  </div>
-              
+                       {/* Taker Vaults */}
+        <div className="space-y-1 px-4  sm:px-6 sm:py-5 items-center">
+                        <div>
+                          <label
+                            htmlFor="project-name"
+                            className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                          >
+                            Taker Vaults
+                          </label>
+                          <p id="private-access-description" className="text-gray-500 text-sm mt-1">
+                           Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful execution of the respective mutation.
+                          </p>
+                        </div>
+                        {vaults.map(vault => 
+                          <Vault name={vault} type="Taker"/>
+                        )}
+                          
+                      </div>
+                   {/**mint */}
                   {/* Action buttons */}
                   <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
                     <div className="flex justify-end space-x-3">
@@ -372,8 +507,11 @@ aria-describedby="price-currency"
                       </button>
                     </div>
                   </div>
-             
-                 
+                    </div>
+                  </div>
+
+
+
                 </form>
               </div>
             </Transition.Child>
