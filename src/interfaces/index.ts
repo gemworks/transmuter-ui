@@ -1,5 +1,4 @@
 export interface WhiteListProps {
-    whiteListType: string, publicKey: string 
-    }
-    
-    
+	whiteListType: string;
+	publicKey: string;
+}

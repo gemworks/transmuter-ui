@@ -93,6 +93,7 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 	}, [bankPk]);
 
 	async function main() {
+
 		const pk = new PublicKey(bankPk);
 		const whitelistPdas = await gemBankClient.fetchAllWhitelistProofPDAs(pk);
 		const whitelistPdas_ = whitelistPdas.map((item) => {
@@ -156,7 +157,7 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 												<button
 													type="button"
 													className="bg-white rounded-md  text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-													onClick={toggleState}
+													onClick={() => {resetPublicKey(); toggleState()}}
 												>
 													<span className="sr-only">Close panel</span>
 													<XIcon className="h-6 w-6" aria-hidden="true" />

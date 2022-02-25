@@ -98,17 +98,30 @@ export const TransmuterView: FC = ({ }) => {
 	const [banks, setBanks] = useState<string[]>([]);
 	const [bank, setBank] = useState<string>();
 
-	const [open, setOpen] = useState(false);
+	const [openBank, setOpenBank] = useState(false);
+	const [openMutation, setMutation] = useState(true);
+	const [mutationDraft, setMutationDraft] = useState(false);
 	const [modalIsOpen, setModalIsOpen] = useState(false);
 	const [transmuterOwner, setTransmuterOwner] = useState<PublicKey>();
 
+
 	const [mutations, setMutations] = useState<any[]>([]);
 
-	function toggleOpen(): void {
-		if (open) {
-			setOpen(false);
+	function toggleMutation(): void {
+		if (openMutation) {
+			setMutation(false);
 		} else {
-			setOpen(true);
+			setMutation(true);
+		}
+	}
+	function toggleBank(): void {
+		if (openBank) {
+			setOpenBank(false);
+			if (mutationDraft) {
+				setMutation(true);
+			}
+		} else {
+			setOpenBank(true);
 		}
 	}
 
@@ -121,7 +134,6 @@ export const TransmuterView: FC = ({ }) => {
 	}
 
 	useEffect(() => {
-		console.log("wallet_useffect");
 		if (wallet.publicKey && transmuterClient === null) {
 			initTransmuterClient(wallet, connection);
 			initGemBankClient(wallet, connection);
@@ -132,7 +144,6 @@ export const TransmuterView: FC = ({ }) => {
 
 
 	useEffect(() => {
-		console.log("transmuter_useffect");
 		if (transmuterClient) {
 			getTransmuter(transmuterClient);
 			getMutationsByTransmuter(transmuterClient);
@@ -179,7 +190,6 @@ export const TransmuterView: FC = ({ }) => {
 
 
 	}
-
 	
 
 
@@ -226,18 +236,21 @@ export const TransmuterView: FC = ({ }) => {
 	return (
 		<div className="py-10">
 			<BankSidebar
-				open={open}
+				open={openBank}
 				bankPk={bank}
 				isTransmuterOwner={transmuterOwner?.toBase58() === wallet.publicKey?.toBase58()}
 				transmuterWrapper={transmuterWrapper}
-				toggleState={() => { toggleOpen() }}
+				toggleState={() => { toggleBank() }}
 				addToWhitelist={() => { }}
 				removeFromWhitelist={() => { }}
 				addRarities={() => { }}
 			/>
 			<CreateMutationSidebar
-				open={true}
-				toggleState={() => {}}
+				banks={banks}
+				open={openMutation}
+				setBank={setBank}
+				openBank={() => {	setOpenBank(true); setMutation(false); setMutationDraft(true)}}
+				toggleState={() => toggleMutation()}
 			/>
 			<TransferOwnership
 			transmuterWrapper={transmuterWrapper}
@@ -278,14 +291,14 @@ Transfer Ownership
 					<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
 
 						{banks.map((bank, index) => (
-							<BankCard bank={bank} key={index} setBank={() => { setBank(bank), toggleOpen() }} />
+							<BankCard bank={bank} key={index} setBank={() => { setBank(bank), toggleBank() }} />
 						))}
 					</ul>
 
 					<h2 className="text-xl font-bold leading-tight text-gray-700">Mutations</h2>
 					{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() && (
 					<button
-					onClick={() => {		createMutation();}}
+					onClick={() => {	toggleMutation()}}
         type="button"
         className="inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 ease-in"
       >

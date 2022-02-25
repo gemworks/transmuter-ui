@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {WhiteListProps} from "../interfaces";
 import { TokenListProvider, TokenInfo } from "@solana/spl-token-registry";
 import avatar from 'gradient-avatar'
-
+import GradientAvatar from './GradientAvatar';
 interface IconProps extends WhiteListProps {
 	removeFromWhiteList: () => void,
 	isTransmuterOwner: boolean
@@ -26,22 +26,25 @@ Icon = (props: IconProps) => {
 
 	const token = tokenMap.get(props.publicKey);
 	if (!token || !token.logoURI) {
-		const svgAvatar = avatar(props.publicKey);
+
 		
 
 		return (
 	
-<div className="flex justify-between max-w-lg items-center py-3">
-<div className="flex items-center">
-	<img className="rounded-full w-9 h-9 object-scale-none mr-3" src={`data:image/svg+xml;utf8,${encodeURIComponent(svgAvatar)}`} />
-	<div>
-	<span className="text-xs inline-flex items-center px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-500 mb-2">
-        {props.whiteListType} Address
-      </span>
-		<p className="text-gray-500 font-medium text-sm">{props.publicKey}</p>
-	</div>
+		<div className="flex justify-between max-w-lg items-center py-3">
+		<div className="flex items-center">
+			<GradientAvatar
+				hash={props.publicKey}
+				cssClasses={"mr-3"}
+			/>
+			<div>
+			<span className="text-xs inline-flex items-center px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-500 mb-2">
+				{props.whiteListType} Address
+			</span>
+				<p className="text-gray-500 font-medium text-sm">{props.publicKey}</p>
+			</div>
 
-</div>
+		</div>
 
 
 {props.isTransmuterOwner && (
@@ -86,3 +89,7 @@ Icon = (props: IconProps) => {
 		</div>
 	);
 };
+
+
+
+
