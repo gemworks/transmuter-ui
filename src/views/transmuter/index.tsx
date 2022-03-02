@@ -11,6 +11,7 @@ import pkg from "../../../package.json";
 import Slideover from "../../components/BankSidebar";
 import TransferOwnership from "../../components/TransferOwnership";
 import CreateMutationSidebar from "../../components/CreateMutationSidebar";
+import ManageMutation from "../../components/ManageMutation";
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import useTransmuterStore from "../../stores/useTransmuterStore";
@@ -27,6 +28,7 @@ import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, Transmute
 import { BN } from "@project-serum/anchor";
 import { toBN } from "@gemworks/gem-farm-ts";
 import BankSidebar from "../../components/BankSidebar";
+import { formatPublickey, parseString } from "../../utils/helpers";
 
 //existing transmuters
 interface BankCardProps {
@@ -40,7 +42,7 @@ export function BankCard({ bank, setBank }: BankCardProps) {
 				onClick={setBank}
 				className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden"
 			>
-				<h2 className="pl-4 pt-4 text-lg font-semibold">Bank {bank}</h2>
+				<h2 className="pl-4 pt-4 text-lg font-semibold">Bank {formatPublickey(bank)}</h2>
 				<button type="button" className="absolute inset-0 focus:outline-none">
 					<span className="sr-only">View details for Bank</span>
 				</button>
@@ -88,13 +90,24 @@ export const TransmuterView: FC = ({}) => {
 	const [bank, setBank] = useState<string>();
 
 	const [openBank, setOpenBank] = useState(false);
-	const [openMutation, setMutation] = useState(true);
+	const [openMutation, setMutation] = useState(false);
 	const [mutationDraft, setMutationDraft] = useState(false);
 	const [modalIsOpen, setModalIsOpen] = useState(false);
 	const [transmuterOwner, setTransmuterOwner] = useState<PublicKey>();
 
+	const [openMutationManager, setOpenMutationManager] = useState(false);
+	const [selectedMutation, setSelectedMutation] = useState<any>(null);
+	const [selectedMutationPk, setSelectedMutationPk] = useState<PublicKey>();
+
 	const [mutations, setMutations] = useState<any[]>([]);
 
+	function toggleMutationManager(): void {
+		if (openMutationManager) {
+			setOpenMutationManager(false);
+		} else {
+			setOpenMutationManager(true);
+		}
+	}
 	function toggleMutation(): void {
 		if (openMutation) {
 			setMutation(false);
@@ -139,8 +152,8 @@ export const TransmuterView: FC = ({}) => {
 		const transmuterPk = new PublicKey(transmuterPublicKey);
 		const data = await transmuterClient.programs.Transmuter.account.transmuter.fetch(transmuterPk);
 		const { bankA, bankB, bankC, owner } = data;
-		console.log(wallet.publicKey.toBase58());
-		console.log(owner.toBase58());
+	
+
 		setTransmuterOwner(owner);
 		//WRAPPER
 		const transmuterWrapper_ = new TransmuterWrapper(transmuterClient, transmuterPk, bankA, bankB, bankC, data);
@@ -155,7 +168,7 @@ export const TransmuterView: FC = ({}) => {
 		// let {name} = mutations[2].account;
 		// const str = String.fromCharCode.apply(null, new Uint8Array(name));
 		setMutations(mutations);
-		console.log("mutations",mutations);
+		console.log("mutations", mutations);
 	}
 
 	return (
@@ -191,6 +204,11 @@ export const TransmuterView: FC = ({}) => {
 					toggleModalOpen();
 				}}
 			/>
+			<ManageMutation 
+			
+			account={selectedMutation}
+			publicKey={selectedMutationPk}
+			transmuterWrapper={transmuterWrapper} open={openMutationManager} toggleState={() => toggleMutationManager()} />
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="space-y-2">
@@ -247,6 +265,32 @@ export const TransmuterView: FC = ({}) => {
 							<PlusSmIconSolid className="h-5 w-5" aria-hidden="true" />
 						</button>
 					)}
+
+					<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
+						{mutations.map((mutation) => (
+							<li
+								onClick={() => {
+									setSelectedMutation(mutation.account);
+									setSelectedMutationPk(mutation.publicKey);
+									if (selectedMutation !== null) {
+										toggleMutationManager();
+									}
+								}}
+								className="relative"
+							>
+								<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
+									<div className="pl-4">
+										<h2 className=" pt-4 text-base font-semibold">"{parseString(mutation.account.name)}" </h2>
+										<h3>{formatPublickey(mutation.publicKey.toBase58())}</h3>
+									</div>
+
+									<button type="button" className="absolute inset-0 focus:outline-none">
+										<span className="sr-only">View details for Mutation</span>
+									</button>
+								</div>
+							</li>
+						))}
+					</ul>
 				</div>
 			</main>
 		</div>

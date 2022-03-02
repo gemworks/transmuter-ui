@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import GradientAvatar from "./GradientAvatar";
 import { RadioGroup } from "@headlessui/react";
+import { formatPublickey } from "../utils/helpers";
 interface VaultProps {
 	name: string;
 	type: "Maker" | "Taker";
@@ -43,15 +44,6 @@ export default function Vault({
 	enabled,
 	usages,
 }: VaultProps) {
-	function formatPublickey(publicKey: string): string {
-		if (publicKey === undefined) {
-			return "";
-		}
-		const length = publicKey.length;
-
-		return publicKey.substring(0, 5) + ".." + publicKey.substring(length, length - 5);
-	}
-
 	const vaulOptions = [
 		{
 			value: "do-nothing",
