@@ -51,40 +51,12 @@ export const prepareMutation = async ({
 	takerTokenAmount: BN;
 
 }) => {
-	// create any relevant maker mints
-	let rest: any;
-	// [makerMintA, rest]  = await sdk.createMintAndATA(makerTokenAmount);
-	// if (makerTokenBAmountPerUse) {
-	// 	[makerMintB, rest] = await sdk.createMintAndATA(makerTokenBAmountPerUse.mul(uses));
-	// }
-	// if (makerTokenCAmountPerUse) {
-	// 	[makerMintC, rest] = await sdk.createMintAndATA(makerTokenCAmountPerUse.mul(uses));
-	// }
-
-	// makerMintA = await getATAAddress({
-	// 	mint: makerMintA,
-	// 	owner: owner,
-	// });
 
 
-	
+	console.log("total_funing", {makerTokenAmount, makerTokenAmountPerUse, uses})
 
 
-	// if (makerMintB) {
-	// 	makerMintB = await getATAAddress({
-	// 		mint: makerMintB,
-	// 		owner: owner,
-	// 	});
-	// }
-	// if (makerMintC) {
-	// 	makerMintB = await getATAAddress({
-	// 		mint: makerMintC,
-	// 		owner: owner,
-	// 	});
-	// }
 
-
-	// console.log({a: makerMintA.toBase58(), b: makerMintB.toBase58(), c: makerMintC.toBase58()})
 	const config: MutationConfig = {
 		takerTokenA: {
 			gemBank: transmuter.bankA,
@@ -121,8 +93,7 @@ export const prepareMutation = async ({
 		reversible,
 	};
 	console.log("config",config);
-	//thesis: true
-	console.log("test", config.makerTokenB && config.makerTokenB.mint);
+
 	const { mutationWrapper, tx } = await sdk.initMutation(config, transmuter.key, uses, owner, mutationName);
 	console.log("mutation", { mutationWrapper, tx });
 

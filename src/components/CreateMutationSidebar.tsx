@@ -81,19 +81,19 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 
 	//form
 	const [name, handleNameChange, setName, resetName] = useInputState("");
-	const [usages, handleUsageChange, setUsages, resetUsages] = useInputState(0);
+	const [usages, handleUsageChange, setUsages, resetUsages] = useInputState(1);
 	const [mutationDuration, handleMutationDurationChange, setMutationDuration, resetMutationDuration] = useInputState(0);
 	const [executionPrice, handleExecutionPriceChange, setExecutionPrice, resetExecutionPrice] = useInputState(0);
 	const [reversePrice, handleReversePriceChange, setReversePrice, resetReversePrice] = useInputState(0);
 
 	//maker vaults
-	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("");
+	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("DoPnWBVs8eHcCBPWnjeqhUATAekyAnmZXP8Sjn1Ma297");
 	const [makerAAmountPerUse, handleMakerAAmountPerUseChange, setMakerAAmountPerUse, resetMakerAAmountPerUse] = useInputState(0);
 	const [makerATotalFunding, handleMakerATotalFundingChange, setMakerATotalFunding, resetMakerATotalFunding] = useInputState(0);
-	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("");
+	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("4LcBQBVK9Y2DMc2n9hbrY16hLzzpqucDCe3p4UFqLCku");
 	const [makerBAmountPerUse, handleMakerBAmountPerUseChange, setMakerBAmountPerUse, resetMakerBAmountPerUse] = useInputState(0);
 	const [makerBTotalFunding, handleMakerBTotalFundingChange, setMakerBTotalFunding, resetMakerBTotalFunding] = useInputState(0);
-	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("");
+	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("DgUQD9WkJAfW1WDfHNKo6RiT58FZiosCKPgRfA9Xx59Z");
 	const [makerCAmountPerUse, handleMakerCAmountPerUseChange, setMakerCAmountPerUse, resetMakerCAmountPerUse] = useInputState(0);
 	const [makerCTotalFunding, handleMakerCTotalFundingChange, setMakerCTotalFunding, resetMakerCTotalFunding] = useInputState(0);
 	//taker vaults
@@ -108,6 +108,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	function toggleSwitch() {
 		if (!enabled) {
 			setEnabled(true);
+
+			//lock all vaults if enabled
+			setTakerAEscrowAction("lock");
+			setTakerBEscrowAction("lock");
+			setTakerCEscrowAction("lock");
 		} else {
 			setEnabled(false);
 		}
@@ -135,30 +140,30 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 					mutationName: name,
 					owner: wallet.publicKey,
 					vaultAction: parseStringToVaultAction(takerAEscrowAction),
-					mutationDurationSec: toBN(mutationDuration),
+					mutationDurationSec: toBN(parseFloat(mutationDuration)),
 					reversible: enabled,
-					uses: toBN(usages),
-					reversalPriceLamports: toBN(reversePrice * LAMPORTS_PER_SOL),
+					uses: toBN(parseFloat(usages)),
+					reversalPriceLamports: toBN(parseFloat(reversePrice) * LAMPORTS_PER_SOL),
 					makerMintA: new PublicKey(makerATokenAddress),
 					makerMintB: new PublicKey(makerBTokenAddress),
 					makerMintC: new PublicKey(makerCTokenAddress),
 					takerTokenB: {
 						gemBank: transmuterWrapper.bankB,
-						requiredAmount: toBN(takerBAmountPerUse),
+						requiredAmount: toBN(parseFloat(takerBAmountPerUse)),
 						requiredUnits: RequiredUnits.RarityPoints,
 						vaultAction: parseStringToVaultAction(takerBEscrowAction),
 					},
 					takerTokenC: {
 						gemBank: transmuterWrapper.bankC,
-						requiredAmount: toBN(takerCAmountPerUse),
+						requiredAmount: toBN(parseFloat(takerCAmountPerUse)),
 						requiredUnits: RequiredUnits.RarityPoints,
 						vaultAction: parseStringToVaultAction(takerCEscrowAction),
 					},
-					makerTokenAmount: toBN(makerATotalFunding),
-					takerTokenAmount: toBN(takerAAmountPerUse),
-					makerTokenAmountPerUse: toBN(makerAAmountPerUse),
-					makerTokenBAmountPerUse: toBN(makerBAmountPerUse),
-					makerTokenCAmountPerUse: toBN(makerCAmountPerUse),
+					makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
+					takerTokenAmount: toBN(parseFloat(takerAAmountPerUse)),
+					makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
+					makerTokenBAmountPerUse: toBN(parseFloat(makerBAmountPerUse)),
+					makerTokenCAmountPerUse: toBN(parseFloat(makerCAmountPerUse)),
 				});
 			} catch (err) {
 				console.log(err);
@@ -270,6 +275,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 															onCut={(e: any) => {
 																setUsages(e.target.value);
 															}}
+															min="1"
 															name="mutation_name"
 															id="mutation_name"
 															className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
@@ -301,6 +307,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 															onCut={(e: any) => {
 																setMutationDuration(e.target.value);
 															}}
+															min="0"
 															type="number"
 															name="mutation_duration"
 															id="mutation_duration"
@@ -339,6 +346,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 																	type="number"
 																	name="price"
 																	id="price"
+																	min="0"
 																	className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
 																	placeholder="0.00"
 																	aria-describedby="price-currency"
@@ -391,6 +399,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 																	<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
 																</div>
 																<input
+																	min="0"
 																	disabled={!enabled}
 																	value={reversePrice}
 																	onChange={(e) => {
@@ -440,6 +449,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														totalFunding={makerATotalFunding}
 														setTotalFunding={setMakerATotalFunding}
 														handleTotalFundingChange={handleMakerATotalFundingChange}
+														usages={usages}
 													/>
 													<Vault
 														name={"B"}
@@ -453,6 +463,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														totalFunding={makerBTotalFunding}
 														setTotalFunding={setMakerBTotalFunding}
 														handleTotalFundingChange={handleMakerBTotalFundingChange}
+														usages={usages}
 													/>
 													<Vault
 														name={"C"}
@@ -466,6 +477,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														totalFunding={makerCTotalFunding}
 														setTotalFunding={setMakerCTotalFunding}
 														handleTotalFundingChange={handleMakerCTotalFundingChange}
+														usages={usages}
 													/>
 												</div>
 
@@ -481,9 +493,9 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														</p>
 													</div>
 													<Vault
-														key={0}
 														escrowAccountAction={takerAEscrowAction}
 														setEscrowAccountAction={setTakerAEscrowAction}
+														enabled={enabled}
 														amountPerUse={takerAAmountPerUse}
 														setAmountPerUse={setTakerAAmountPerUse}
 														handleAmountPerUseChange={handleTakerAAmountPerUseChange}
@@ -495,9 +507,10 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														}}
 													/>
 													<Vault
-														key={1}
+														key="B"
 														escrowAccountAction={takerBEscrowAction}
 														setEscrowAccountAction={setTakerBEscrowAction}
+														enabled={enabled}
 														amountPerUse={takerBAmountPerUse}
 														setAmountPerUse={setTakerBAmountPerUse}
 														handleAmountPerUseChange={handleTakerBAmountPerUseChange}
@@ -509,9 +522,10 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														}}
 													/>
 													<Vault
-														key={2}
+														key="C"
 														escrowAccountAction={takerCEscrowAction}
 														setEscrowAccountAction={setTakerCEscrowAction}
+														enabled={enabled}
 														amountPerUse={takerCAmountPerUse}
 														setAmountPerUse={setTakerCAmountPerUse}
 														handleAmountPerUseChange={handleTakerCAmountPerUseChange}
@@ -522,8 +536,6 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 															setBank(banks[2]);
 														}}
 													/>
-									
-
 												</div>
 												{/**mint */}
 												{/* Action buttons */}

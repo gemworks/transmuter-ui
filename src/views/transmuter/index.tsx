@@ -155,7 +155,7 @@ export const TransmuterView: FC = ({}) => {
 		// let {name} = mutations[2].account;
 		// const str = String.fromCharCode.apply(null, new Uint8Array(name));
 		setMutations(mutations);
-		console.log(mutations);
+		console.log("mutations",mutations);
 	}
 
 	return (
