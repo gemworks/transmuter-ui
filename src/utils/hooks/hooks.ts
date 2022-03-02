@@ -8,12 +8,11 @@ export const useInputState = (initiaVal: any): any => {
 	const reset = () => {
 		if (typeof initiaVal === "string") {
 			setInput("");
-		} else if (typeof initiaVal ===  "number") {
-			setInput(0)
+		} else if (typeof initiaVal === "number") {
+			setInput(0);
 		} else {
 			setInput(null);
 		}
-	
 	};
 	return [input, handleChange, setInput, reset] as const;
 };

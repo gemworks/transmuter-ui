@@ -5,245 +5,18 @@ import { LinkIcon, PlusSmIcon, QuestionMarkCircleIcon } from "@heroicons/react/s
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Switch } from "@headlessui/react";
 import { useInputState } from "../utils/hooks/hooks";
-import GradientAvatar from "./GradientAvatar";
+
 import useTransmuterStore from "../stores/useTransmuterStore";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { toBN } from "@gemworks/gem-farm-ts";
 import { prepareMutation } from "../utils/mutations";
+import { ToastContainer, toast } from "react-toastify";
 import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
+
 function classNames(...classes) {
 	return classes.filter(Boolean).join(" ");
 }
-
-interface VaultProps {
-	name: string;
-	type: "Maker" | "Taker";
-	tokenMintAddress?: string;
-	setTokenMintAddress?: (e) => void;
-	handleTokenMintAddressChange?: (e: any) => void;
-	amountPerUse: number;
-	setAmountPerUse: (e) => void;
-	handleAmountPerUseChange: (e: any) => void;
-	totalFunding?: number;
-	setTotalFunding?: (e) => void;
-	handleTotalFundingChange?: (e: any) => void;
-	setEscrowAccountAction?: (e: any) => void;
-	setBank?: () => void;
-	openBank?: () => void;
-}
-export function Vault({
-	name,
-	type,
-	tokenMintAddress,
-	setTokenMintAddress,
-	handleTokenMintAddressChange,
-	amountPerUse,
-	handleAmountPerUseChange,
-	totalFunding,
-	setTotalFunding,
-	handleTotalFundingChange,
-	setBank,
-	openBank,
-	setAmountPerUse,
-	setEscrowAccountAction,
-}: VaultProps) {
-	function formatPublickey(publicKey: string): string {
-		if (publicKey === undefined) {
-			return "";
-		}
-		const length = publicKey.length;
-
-		return publicKey.substring(0, 5) + ".." + publicKey.substring(length, length - 5);
-	}
-	return (
-		<div className="space-y-3 py-5">
-			<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2 px-4  sm:px-6">
-				{type} Vault
-			</label>
-			<div className="px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6">
-				<div>
-					<label htmlFor="project-name" className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-						{type === "Maker" ? "Token Mint Address" : "Bank Config"}
-					</label>
-				</div>
-				<div className="sm:col-span-2">
-					{type === "Maker" ? (
-						<input
-							value={tokenMintAddress}
-							onChange={(e) => {
-								handleTokenMintAddressChange(e);
-							}}
-							onPaste={(e) => {
-								const pastedText = e.clipboardData.getData("Text");
-								setTokenMintAddress(pastedText);
-								e.preventDefault();
-							}}
-							onCut={(e: any) => {
-								setTokenMintAddress(e.target.value);
-							}}
-							type="text"
-							name="project-name"
-							id="project-name"
-							className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-						/>
-					) : (
-						<div
-							className="flex items-center hover:opacity-75 transition-all duration-150 ease-in text-sm font-medium text-gray-700 sm:pt-2 cursor-pointer"
-							onClick={() => {
-								setBank();
-								openBank();
-							}}
-						>
-							<GradientAvatar width={7} height={7} hash={name} />
-							<span className="pl-2">{formatPublickey(name)}</span>
-						</div>
-					)}
-				</div>
-			</div>
-			{type === "Maker" && (
-				<div className=" px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6">
-					<div>
-						<label htmlFor="project-name" className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-							Total Funding
-						</label>
-					</div>
-					<div className="sm:col-span-2">
-						<input
-							value={totalFunding}
-							onChange={(e) => {
-								handleTotalFundingChange(e);
-							}}
-							onPaste={(e) => {
-								const pastedText = e.clipboardData.getData("Text");
-								setTotalFunding(pastedText);
-								e.preventDefault();
-							}}
-							onCut={(e: any) => {
-								setTotalFunding(e.target.value);
-							}}
-							type="number"
-							name="project-name"
-							id="project-name"
-							className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-						/>
-					</div>
-				</div>
-			)}
-
-			<div className="px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6">
-				<div>
-					<label htmlFor="project-name" className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-						Amount per use
-					</label>
-				</div>
-				<div className="sm:col-span-2">
-					<input
-						value={amountPerUse}
-						onChange={(e) => {
-							handleAmountPerUseChange(e);
-						}}
-						onPaste={(e) => {
-							const pastedText = e.clipboardData.getData("Text");
-							setAmountPerUse(pastedText);
-							e.preventDefault();
-						}}
-						type="number"
-						name="project-name"
-						id="project-name"
-						className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-					/>
-				</div>
-			</div>
-
-			{/* Vault Action */}
-
-			{type === "Taker" && (
-				<fieldset>
-					<div className="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
-						<div>
-							<legend className="text-sm font-medium text-gray-700">Escrow Account Action</legend>
-						</div>
-						<div className="space-y-5 sm:col-span-2">
-							<div className="space-y-5 sm:mt-0">
-								<div className="relative flex items-start">
-									<div className="absolute flex h-5 items-center">
-										<input
-											id="public-access"
-											name="privacy"
-											aria-describedby="public-access-description"
-											type="radio"
-											value="do-nothing"
-											onClick={(e: any) => {
-												setEscrowAccountAction(e.target.value);
-											}}
-											className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-											defaultChecked
-										/>
-									</div>
-									<div className="pl-7 text-sm">
-										<label htmlFor="public-access" className="font-medium text-gray-900">
-											Do nothing
-										</label>
-										<p id="public-access-description" className="text-gray-500">
-											Omits this property
-										</p>
-									</div>
-								</div>
-								<div className="relative flex items-start">
-									<div className="absolute flex h-5 items-center">
-										<input
-											id="restricted-access"
-											name="privacy"
-											aria-describedby="restricted-access-description"
-											type="radio"
-											value="lock"
-											onClick={(e: any) => {
-												setEscrowAccountAction(e.target.value);
-											}}
-											className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-										/>
-									</div>
-									<div className="pl-7 text-sm">
-										<label htmlFor="restricted-access" className="font-medium text-gray-900">
-											Lock
-										</label>
-										<p id="restricted-access-description" className="text-gray-500">
-											Locks the tokens, deposited by the taker.
-										</p>
-									</div>
-								</div>
-								<div className="relative flex items-start">
-									<div className="absolute flex h-5 items-center">
-										<input
-											id="private-access"
-											name="privacy"
-											aria-describedby="private-access-description"
-											type="radio"
-											value="change-owner"
-											onClick={(e: any) => {
-												setEscrowAccountAction(e.target.value);
-											}}
-											className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-										/>
-									</div>
-									<div className="pl-7 text-sm">
-										<label htmlFor="private-access" className="font-medium text-gray-900">
-											Change Owner
-										</label>
-										<p id="private-access-description" className="text-gray-500">
-											Lets you reassign the tokens, deposited by the taker, to yourself
-										</p>
-									</div>
-								</div>
-							</div>
-							{/* <hr className="border-gray-200" /> */}
-						</div>
-					</div>
-				</fieldset>
-			)}
-		</div>
-	);
-}
+import Vault from "./Vault";
 
 interface ToggleSwitchProps {
 	enabled: boolean;
@@ -323,15 +96,14 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("");
 	const [makerCAmountPerUse, handleMakerCAmountPerUseChange, setMakerCAmountPerUse, resetMakerCAmountPerUse] = useInputState(0);
 	const [makerCTotalFunding, handleMakerCTotalFundingChange, setMakerCTotalFunding, resetMakerCTotalFunding] = useInputState(0);
-
 	//taker vaults
 
 	const [takerAAmountPerUse, handleTakerAAmountPerUseChange, setTakerAAmountPerUse, resetTakerAAmountPerUse] = useInputState(0);
 	const [takerAEscrowAction, handleTakerAEscrowActionChange, setTakerAEscrowAction, resetTakerAEscrowAction] = useInputState("do-nothing");
-	const [takerBEscrowAction, handleTakerBEscrowActionChange, setTakerBEscrowAction, resetTakerBEscrowAction] = useInputState("");
+	const [takerBEscrowAction, handleTakerBEscrowActionChange, setTakerBEscrowAction, resetTakerBEscrowAction] = useInputState("do-nothing");
 	const [takerBAmountPerUse, handleTakerBAmountPerUseChange, setTakerBAmountPerUse, resetTakerBAmountPerUse] = useInputState(0);
 	const [takerCAmountPerUse, handleTakerCAmountPerUseChange, setTakerCAmountPerUse, resetTakerCAmountPerUse] = useInputState(0);
-	const [takerCEscrowAction, handleTakerCEscrowActionChange, setTakerCEscrowAction, resetTakerCEscrowAction] = useInputState("");
+	const [takerCEscrowAction, handleTakerCEscrowActionChange, setTakerCEscrowAction, resetTakerCEscrowAction] = useInputState("do-nothing");
 
 	function toggleSwitch() {
 		if (!enabled) {
@@ -341,422 +113,448 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 		}
 	}
 
-  function parseStringToVaultAction(action: string){
-    switch (action) {
-      case "do-nothing":
-        return VaultAction.DoNothing;
-        case "change-owner":
-          return VaultAction.ChangeOwner;
-        case "lock":
-          return VaultAction.Lock;
-        default:
-          return VaultAction.DoNothing;
-    }
-  }
-
-	async function createMutation() {
-		try {
-			await prepareMutation({
-				sdk: transmuterClient,
-				transmuter: transmuterWrapper,
-				mutationName: name,
-				owner: wallet.publicKey,
-				vaultAction: parseStringToVaultAction(takerAEscrowAction),
-				mutationDurationSec: toBN(0),
-				reversible: false,
-				uses: toBN(3),
-				reversalPriceLamports: toBN(LAMPORTS_PER_SOL),
-				makerMintA: new PublicKey("4LcBQBVK9Y2DMc2n9hbrY16hLzzpqucDCe3p4UFqLCku"),
-				makerMintB: new PublicKey("DoPnWBVs8eHcCBPWnjeqhUATAekyAnmZXP8Sjn1Ma297"),
-				// makerMintC: new PublicKey("DgUQD9WkJAfW1WDfHNKo6RiT58FZiosCKPgRfA9Xx59Z"),
-				takerTokenB: {
-					gemBank: transmuterWrapper.bankB,
-					requiredAmount: toBN(5000),
-					requiredUnits: RequiredUnits.RarityPoints,
-					vaultAction: parseStringToVaultAction(takerBEscrowAction),
-				},
-				takerTokenC: {
-					gemBank: transmuterWrapper.bankC,
-					requiredAmount: toBN(5000),
-					requiredUnits: RequiredUnits.RarityPoints,
-					vaultAction: parseStringToVaultAction(takerCEscrowAction),
-				},
-				makerTokenAmount: toBN(15000),
-				takerTokenAmount: toBN(5000),
-				makerTokenAmountPerUse: toBN(5000),
-				makerTokenBAmountPerUse: toBN(5000),
-				// makerTokenCAmountPerUse: toBN(5000),
-			});
-		} catch (err) {
-			console.log("ERROR", err);
+	function parseStringToVaultAction(action: string) {
+		switch (action) {
+			case "do-nothing":
+				return VaultAction.DoNothing;
+			case "change-owner":
+				return VaultAction.ChangeOwner;
+			case "lock":
+				return VaultAction.Lock;
+			default:
+				return VaultAction.DoNothing;
 		}
 	}
 
+	async function createMutation() {
+		async function prepareMutation_() {
+			try {
+				prepareMutation({
+					sdk: transmuterClient,
+					transmuter: transmuterWrapper,
+					mutationName: name,
+					owner: wallet.publicKey,
+					vaultAction: parseStringToVaultAction(takerAEscrowAction),
+					mutationDurationSec: toBN(mutationDuration),
+					reversible: enabled,
+					uses: toBN(usages),
+					reversalPriceLamports: toBN(reversePrice * LAMPORTS_PER_SOL),
+					makerMintA: new PublicKey(makerATokenAddress),
+					makerMintB: new PublicKey(makerBTokenAddress),
+					makerMintC: new PublicKey(makerCTokenAddress),
+					takerTokenB: {
+						gemBank: transmuterWrapper.bankB,
+						requiredAmount: toBN(takerBAmountPerUse),
+						requiredUnits: RequiredUnits.RarityPoints,
+						vaultAction: parseStringToVaultAction(takerBEscrowAction),
+					},
+					takerTokenC: {
+						gemBank: transmuterWrapper.bankC,
+						requiredAmount: toBN(takerCAmountPerUse),
+						requiredUnits: RequiredUnits.RarityPoints,
+						vaultAction: parseStringToVaultAction(takerCEscrowAction),
+					},
+					makerTokenAmount: toBN(makerATotalFunding),
+					takerTokenAmount: toBN(takerAAmountPerUse),
+					makerTokenAmountPerUse: toBN(makerAAmountPerUse),
+					makerTokenBAmountPerUse: toBN(makerBAmountPerUse),
+					makerTokenCAmountPerUse: toBN(makerCAmountPerUse),
+				});
+			} catch (err) {
+				console.log(err);
+			}
+		}
+		toast.promise(
+			prepareMutation_(),
+			{
+				pending: `Creating new Mutation`,
+				success: `Successfully created mutation`,
+				error: "something went wrong",
+			},
+			{
+				position: "bottom-right",
+			}
+		);
+	}
+
 	return (
-		<Transition.Root show={open} as={Fragment}>
-			<Dialog as="div" className="fixed inset-0 overflow-hidden" onClose={toggleState}>
-				<div className="absolute inset-0 overflow-hidden">
-					<Dialog.Overlay className="absolute inset-0" />
+		<>
+			<ToastContainer theme="colored" />
+			<Transition.Root show={open} as={Fragment}>
+				<Dialog as="div" className="fixed inset-0 overflow-hidden" onClose={toggleState}>
+					<div className="absolute inset-0 overflow-hidden">
+						<Dialog.Overlay className="absolute inset-0" />
 
-					<div className="pointer-events-none fixed inset-y-0 right-0 flex  pl-10 sm:pl-16">
-						<Transition.Child
-							as={Fragment}
-							enter="transform transition ease-in-out duration-500 sm:duration-700"
-							enterFrom="translate-x-full"
-							enterTo="translate-x-0"
-							leave="transform transition ease-in-out duration-500 sm:duration-700"
-							leaveFrom="translate-x-0"
-							leaveTo="translate-x-full"
-						>
-							<div className="pointer-events-auto w-screen max-w-2xl">
-								<form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
-									<div className="flex-1">
-										{/* Header */}
-										<div className="bg-gray-50 px-4 py-6 sm:px-6">
-											<div className="flex items-start justify-between space-x-3">
-												<div className="space-y-1">
-													<Dialog.Title className="text-lg font-medium text-gray-900">New Mutation</Dialog.Title>
-													<p className="text-sm text-gray-500">Get started by filling in the information below to create your new Mutation.</p>
-												</div>
-												<div className="flex h-7 items-center">
-													<button type="button" className="text-gray-400 hover:text-gray-500" onClick={toggleState}>
-														<span className="sr-only">Close panel</span>
-														<XIcon className="h-6 w-6" aria-hidden="true" />
-													</button>
-												</div>
-											</div>
-										</div>
-
-										{/* Divider container */}
-										<div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0 text-gray-900">
-											{/* Project name */}
-											<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
-												<div>
-													<label htmlFor="mutation_name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Mutation Name
-													</label>
-												</div>
-												<div className="sm:col-span-2">
-													<input
-														value={name}
-														onChange={(e) => {
-															handleNameChange(e);
-														}}
-														onPaste={(e) => {
-															const pastedText = e.clipboardData.getData("Text");
-															setName(pastedText);
-															e.preventDefault();
-														}}
-														onCut={(e: any) => {
-															setName(e.target.value);
-														}}
-														type="text"
-														name="mutation_name"
-														id="mutation_name"
-														className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-													/>
-												</div>
-											</div>
-
-											{/* Mutation Duration */}
-											<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
-												<div>
-													<label htmlFor="mutation_name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Number of Usages
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Specify how many times the mutation can be used.
-													</p>
-												</div>
-												<div className="sm:col-span-2">
-													<input
-														type="number"
-														value={usages}
-														onChange={(e) => {
-															handleUsageChange(e);
-														}}
-														onPaste={(e) => {
-															const pastedText = e.clipboardData.getData("Text");
-															setUsages(pastedText);
-															e.preventDefault();
-														}}
-														onCut={(e: any) => {
-															setUsages(e.target.value);
-														}}
-														name="mutation_name"
-														id="mutation_name"
-														className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
-													/>
-												</div>
-											</div>
-
-											{/* Mutation Duration */}
-											<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
-												<div>
-													<label htmlFor="mutation_duration" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Mutation Duration
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Specify the duration of the mutation execution, in seconds.
-													</p>
-												</div>
-												<div className="sm:col-span-2">
-													<input
-														value={mutationDuration}
-														onChange={(e) => {
-															handleMutationDurationChange(e);
-														}}
-														onPaste={(e) => {
-															const pastedText = e.clipboardData.getData("Text");
-															setMutationDuration(pastedText);
-															e.preventDefault();
-														}}
-														onCut={(e: any) => {
-															setMutationDuration(e.target.value);
-														}}
-														type="number"
-														name="mutation_duration"
-														id="mutation_duration"
-														className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
-													/>
-												</div>
-											</div>
-											<div className={`space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center transition-all duration-150 ease-in `}>
-												<div>
-													<label htmlFor="mutation_execution_price" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Execution Price
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Specify the price in SOL, a taker has to pay when executing a mutation.
-													</p>
-												</div>
-												<div className="sm:col-span-2">
-													<div>
-														<div className="mt-1 relative rounded-md shadow-sm">
-															<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-																<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
-															</div>
-															<input
-																value={executionPrice}
-																onChange={(e) => {
-																	handleExecutionPriceChange(e);
-																}}
-																onPaste={(e) => {
-																	const pastedText = e.clipboardData.getData("Text");
-																	handleExecutionPriceChange(pastedText);
-																	e.preventDefault();
-																}}
-																onCut={(e: any) => {
-																	setExecutionPrice(e.target.value);
-																}}
-																type="number"
-																name="price"
-																id="price"
-																className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
-																placeholder="0.00"
-																aria-describedby="price-currency"
-															/>
-															<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"></div>
-														</div>
+						<div className="pointer-events-none fixed inset-y-0 right-0 flex  pl-10 sm:pl-16">
+							<Transition.Child
+								as={Fragment}
+								enter="transform transition ease-in-out duration-500 sm:duration-700"
+								enterFrom="translate-x-full"
+								enterTo="translate-x-0"
+								leave="transform transition ease-in-out duration-500 sm:duration-700"
+								leaveFrom="translate-x-0"
+								leaveTo="translate-x-full"
+							>
+								<div className="pointer-events-auto w-screen max-w-2xl">
+									<div className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
+										<div className="flex-1">
+											{/* Header */}
+											<div className="bg-gray-50 px-4 py-6 sm:px-6">
+												<div className="flex items-start justify-between space-x-3">
+													<div className="space-y-1">
+														<Dialog.Title className="text-lg font-medium text-gray-900">New Mutation</Dialog.Title>
+														<p className="text-sm text-gray-500">Get started by filling in the information below to create your new Mutation.</p>
+													</div>
+													<div className="flex h-7 items-center">
+														<button type="button" className="text-gray-400 hover:text-gray-500" onClick={toggleState}>
+															<span className="sr-only">Close panel</span>
+															<XIcon className="h-6 w-6" aria-hidden="true" />
+														</button>
 													</div>
 												</div>
 											</div>
 
-											{/* Mutation Reversal */}
-											<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
-												<div>
-													<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Reverse Mutations
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Allowing this, lets the taker reverse the mutation, transfering back the deposited & received tokens.
-													</p>
-												</div>
-												<div className="sm:col-span-2">
-													<ToggleSwitch
-														enabled={enabled}
-														toggleSwitch={() => {
-															toggleSwitch();
-														}}
-													/>
-												</div>
-											</div>
-
-											{/* Reversal Lamport Button */}
-
-											<div
-												className={`space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center ${
-													!enabled && "opacity-50"
-												} transition-all duration-150 ease-in `}
-											>
-												<div>
-													<label htmlFor="mutation_reverse_price" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Reverse Price
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Specify the price in SOL, a taker has to pay when reverting a mutation.
-													</p>
-												</div>
-												<div className="sm:col-span-2">
+											{/* Divider container */}
+											<div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0 text-gray-900">
+												{/* Project name */}
+												<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
 													<div>
-														<div className="mt-1 relative rounded-md shadow-sm">
-															<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-																<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
+														<label htmlFor="mutation_name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Mutation Name
+														</label>
+													</div>
+													<div className="sm:col-span-2">
+														<input
+															value={name}
+															onChange={(e) => {
+																handleNameChange(e);
+															}}
+															onPaste={(e) => {
+																const pastedText = e.clipboardData.getData("Text");
+																setName(pastedText);
+																e.preventDefault();
+															}}
+															onCut={(e: any) => {
+																setName(e.target.value);
+															}}
+															type="text"
+															name="mutation_name"
+															id="mutation_name"
+															className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+														/>
+													</div>
+												</div>
+
+												{/* Mutation Duration */}
+												<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
+													<div>
+														<label htmlFor="mutation_name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Number of Usages
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Specify how many times the mutation can be used.
+														</p>
+													</div>
+													<div className="sm:col-span-2">
+														<input
+															type="number"
+															value={usages}
+															onChange={(e) => {
+																handleUsageChange(e);
+															}}
+															onPaste={(e) => {
+																const pastedText = e.clipboardData.getData("Text");
+																setUsages(pastedText);
+																e.preventDefault();
+															}}
+															onCut={(e: any) => {
+																setUsages(e.target.value);
+															}}
+															name="mutation_name"
+															id="mutation_name"
+															className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+														/>
+													</div>
+												</div>
+
+												{/* Mutation Duration */}
+												<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
+													<div>
+														<label htmlFor="mutation_duration" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Mutation Duration
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Specify the duration of the mutation execution, in seconds.
+														</p>
+													</div>
+													<div className="sm:col-span-2">
+														<input
+															value={mutationDuration}
+															onChange={(e) => {
+																handleMutationDurationChange(e);
+															}}
+															onPaste={(e) => {
+																const pastedText = e.clipboardData.getData("Text");
+																setMutationDuration(pastedText);
+																e.preventDefault();
+															}}
+															onCut={(e: any) => {
+																setMutationDuration(e.target.value);
+															}}
+															type="number"
+															name="mutation_duration"
+															id="mutation_duration"
+															className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+														/>
+													</div>
+												</div>
+												<div className={`space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center transition-all duration-150 ease-in `}>
+													<div>
+														<label htmlFor="mutation_execution_price" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Execution Price
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Specify the price in SOL, a taker has to pay when executing a mutation.
+														</p>
+													</div>
+													<div className="sm:col-span-2">
+														<div>
+															<div className="mt-1 relative rounded-md shadow-sm">
+																<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+																	<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
+																</div>
+																<input
+																	value={executionPrice}
+																	onChange={(e) => {
+																		handleExecutionPriceChange(e);
+																	}}
+																	onPaste={(e) => {
+																		const pastedText = e.clipboardData.getData("Text");
+																		handleExecutionPriceChange(pastedText);
+																		e.preventDefault();
+																	}}
+																	onCut={(e: any) => {
+																		setExecutionPrice(e.target.value);
+																	}}
+																	type="number"
+																	name="price"
+																	id="price"
+																	className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
+																	placeholder="0.00"
+																	aria-describedby="price-currency"
+																/>
+																<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"></div>
 															</div>
-															<input
-																disabled={!enabled}
-																value={reversePrice}
-																onChange={(e) => {
-																	handleReversePriceChange(e);
-																}}
-																onPaste={(e) => {
-																	const pastedText = e.clipboardData.getData("Text");
-																	setReversePrice(pastedText);
-																	e.preventDefault();
-																}}
-																onCut={(e: any) => {
-																	setReversePrice(e.target.value);
-																}}
-																type="text"
-																name="price"
-																id="price"
-																className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
-																placeholder="0.00"
-																aria-describedby="price-currency"
-															/>
-															<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"></div>
 														</div>
 													</div>
 												</div>
-											</div>
 
-											{/* Maker Vaults */}
-											<div className="space-y-1 px-4  sm:px-6 sm:py-5 items-center">
-												<div>
-													<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Maker Vaults
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful execution
-														of the respective mutation.
-													</p>
+												{/* Mutation Reversal */}
+												<div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center">
+													<div>
+														<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Reverse Mutations
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Allowing this, lets the taker reverse the mutation, transfering back the deposited & received tokens.
+														</p>
+													</div>
+													<div className="sm:col-span-2">
+														<ToggleSwitch
+															enabled={enabled}
+															toggleSwitch={() => {
+																toggleSwitch();
+															}}
+														/>
+													</div>
 												</div>
-												<Vault
-													name={"A"}
-													type="Maker"
-													tokenMintAddress={makerATokenAddress}
-													handleTokenMintAddressChange={handleMakerATokenAddressChange}
-													setTokenMintAddress={handleMakerATokenAddressChange}
-													amountPerUse={makerAAmountPerUse}
-													setAmountPerUse={setMakerAAmountPerUse}
-													handleAmountPerUseChange={handleMakerAAmountPerUseChange}
-													totalFunding={makerATotalFunding}
-													setTotalFunding={setMakerATotalFunding}
-													handleTotalFundingChange={handleMakerATotalFundingChange}
-												/>
-												<Vault
-													name={"B"}
-													type="Maker"
-													tokenMintAddress={makerBTokenAddress}
-													handleTokenMintAddressChange={handleMakerBTokenAddressChange}
-													setTokenMintAddress={handleMakerBTokenAddressChange}
-													amountPerUse={makerBAmountPerUse}
-													setAmountPerUse={setMakerBAmountPerUse}
-													handleAmountPerUseChange={handleMakerBAmountPerUseChange}
-													totalFunding={makerBTotalFunding}
-													setTotalFunding={setMakerBTotalFunding}
-													handleTotalFundingChange={handleMakerBTotalFundingChange}
-												/>
-												<Vault
-													name={"C"}
-													type="Maker"
-													tokenMintAddress={makerCTokenAddress}
-													handleTokenMintAddressChange={handleMakerCTokenAddressChange}
-													setTokenMintAddress={handleMakerCTokenAddressChange}
-													amountPerUse={makerCAmountPerUse}
-													setAmountPerUse={setMakerCAmountPerUse}
-													handleAmountPerUseChange={handleMakerCAmountPerUseChange}
-													totalFunding={makerCTotalFunding}
-													setTotalFunding={setMakerCTotalFunding}
-													handleTotalFundingChange={handleMakerCTotalFundingChange}
-												/>
-											</div>
 
-											{/* Taker Vaults */}
-											<div className="space-y-1 px-4  sm:px-6 sm:py-5 items-center">
-												<div>
-													<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
-														Taker Vaults
-													</label>
-													<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-														Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful execution
-														of the respective mutation.
-													</p>
+												{/* Reversal Lamport Button */}
+
+												<div
+													className={`space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5 items-center ${
+														!enabled && "opacity-50"
+													} transition-all duration-150 ease-in `}
+												>
+													<div>
+														<label htmlFor="mutation_reverse_price" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Reverse Price
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Specify the price in SOL, a taker has to pay when reverting a mutation.
+														</p>
+													</div>
+													<div className="sm:col-span-2">
+														<div>
+															<div className="mt-1 relative rounded-md shadow-sm">
+																<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+																	<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
+																</div>
+																<input
+																	disabled={!enabled}
+																	value={reversePrice}
+																	onChange={(e) => {
+																		handleReversePriceChange(e);
+																	}}
+																	onPaste={(e) => {
+																		const pastedText = e.clipboardData.getData("Text");
+																		setReversePrice(pastedText);
+																		e.preventDefault();
+																	}}
+																	onCut={(e: any) => {
+																		setReversePrice(e.target.value);
+																	}}
+																	type="text"
+																	name="price"
+																	id="price"
+																	className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 pr-12 sm:text-sm border-gray-300 rounded-md"
+																	placeholder="0.00"
+																	aria-describedby="price-currency"
+																/>
+																<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"></div>
+															</div>
+														</div>
+													</div>
 												</div>
-												<Vault
-													setEscrowAccountAction={setTakerAEscrowAction}
-													amountPerUse={takerAAmountPerUse}
-													setAmountPerUse={setTakerAAmountPerUse}
-													handleAmountPerUseChange={handleTakerAAmountPerUseChange}
-													name={banks[0]}
-													type="Taker"
-													openBank={openBank}
-													setBank={() => {
-														setBank(banks[0]);
-													}}
-												/>
-												<Vault
-													setEscrowAccountAction={setTakerBEscrowAction}
-													amountPerUse={takerBAmountPerUse}
-													setAmountPerUse={setTakerBAmountPerUse}
-													handleAmountPerUseChange={handleTakerBAmountPerUseChange}
-													name={banks[1]}
-													type="Taker"
-													openBank={openBank}
-													setBank={() => {
-														setBank(banks[1]);
-													}}
-												/>
-												<Vault
-													setEscrowAccountAction={setTakerCEscrowAction}
-													amountPerUse={takerCAmountPerUse}
-													setAmountPerUse={setTakerCAmountPerUse}
-													handleAmountPerUseChange={handleTakerCAmountPerUseChange}
-													name={banks[2]}
-													type="Taker"
-													openBank={openBank}
-													setBank={() => {
-														setBank(banks[2]);
-													}}
-												/>
-											</div>
-											{/**mint */}
-											{/* Action buttons */}
-											<div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
-												<div className="flex justify-end space-x-3">
-													<button
-														type="button"
-														className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-														onClick={toggleState}
-													>
-														Cancel
-													</button>
-													<button
-														type="submit"
-														className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-													>
-														Create
-													</button>
+
+												{/* Maker Vaults */}
+												<div className="space-y-1 px-4  sm:px-6 sm:py-5 items-center">
+													<div>
+														<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Maker Vaults
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful
+															execution of the respective mutation.
+														</p>
+													</div>
+													<Vault
+														name={"A"}
+														type="Maker"
+														tokenMintAddress={makerATokenAddress}
+														handleTokenMintAddressChange={handleMakerATokenAddressChange}
+														setTokenMintAddress={setMakerATokenAddress}
+														amountPerUse={makerAAmountPerUse}
+														setAmountPerUse={setMakerAAmountPerUse}
+														handleAmountPerUseChange={handleMakerAAmountPerUseChange}
+														totalFunding={makerATotalFunding}
+														setTotalFunding={setMakerATotalFunding}
+														handleTotalFundingChange={handleMakerATotalFundingChange}
+													/>
+													<Vault
+														name={"B"}
+														type="Maker"
+														tokenMintAddress={makerBTokenAddress}
+														handleTokenMintAddressChange={handleMakerBTokenAddressChange}
+														setTokenMintAddress={setMakerBTokenAddress}
+														amountPerUse={makerBAmountPerUse}
+														setAmountPerUse={setMakerBAmountPerUse}
+														handleAmountPerUseChange={handleMakerBAmountPerUseChange}
+														totalFunding={makerBTotalFunding}
+														setTotalFunding={setMakerBTotalFunding}
+														handleTotalFundingChange={handleMakerBTotalFundingChange}
+													/>
+													<Vault
+														name={"C"}
+														type="Maker"
+														tokenMintAddress={makerCTokenAddress}
+														handleTokenMintAddressChange={handleMakerCTokenAddressChange}
+														setTokenMintAddress={setMakerCTokenAddress}
+														amountPerUse={makerCAmountPerUse}
+														setAmountPerUse={setMakerCAmountPerUse}
+														handleAmountPerUseChange={handleMakerCAmountPerUseChange}
+														totalFunding={makerCTotalFunding}
+														setTotalFunding={setMakerCTotalFunding}
+														handleTotalFundingChange={handleMakerCTotalFundingChange}
+													/>
+												</div>
+
+												{/* Taker Vaults */}
+												<div className="space-y-1 px-4  sm:px-6 sm:py-5 items-center">
+													<div>
+														<label htmlFor="project-name" className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">
+															Taker Vaults
+														</label>
+														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
+															Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful
+															execution of the respective mutation.
+														</p>
+													</div>
+													<Vault
+														key={0}
+														escrowAccountAction={takerAEscrowAction}
+														setEscrowAccountAction={setTakerAEscrowAction}
+														amountPerUse={takerAAmountPerUse}
+														setAmountPerUse={setTakerAAmountPerUse}
+														handleAmountPerUseChange={handleTakerAAmountPerUseChange}
+														name={banks[0]}
+														type="Taker"
+														openBank={openBank}
+														setBank={() => {
+															setBank(banks[0]);
+														}}
+													/>
+													<Vault
+														key={1}
+														escrowAccountAction={takerBEscrowAction}
+														setEscrowAccountAction={setTakerBEscrowAction}
+														amountPerUse={takerBAmountPerUse}
+														setAmountPerUse={setTakerBAmountPerUse}
+														handleAmountPerUseChange={handleTakerBAmountPerUseChange}
+														name={banks[1]}
+														type="Taker"
+														openBank={openBank}
+														setBank={() => {
+															setBank(banks[1]);
+														}}
+													/>
+													<Vault
+														key={2}
+														escrowAccountAction={takerCEscrowAction}
+														setEscrowAccountAction={setTakerCEscrowAction}
+														amountPerUse={takerCAmountPerUse}
+														setAmountPerUse={setTakerCAmountPerUse}
+														handleAmountPerUseChange={handleTakerCAmountPerUseChange}
+														name={banks[2]}
+														type="Taker"
+														openBank={openBank}
+														setBank={() => {
+															setBank(banks[2]);
+														}}
+													/>
+									
+
+												</div>
+												{/**mint */}
+												{/* Action buttons */}
+												<div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+													<div className="flex justify-end space-x-3">
+														<button
+															type="button"
+															className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+															onClick={toggleState}
+														>
+															Cancel
+														</button>
+														<button
+															onClick={() => {
+																createMutation();
+															}}
+															className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+														>
+															Create
+														</button>
+													</div>
 												</div>
 											</div>
 										</div>
 									</div>
-								</form>
-							</div>
-						</Transition.Child>
+								</div>
+							</Transition.Child>
+						</div>
 					</div>
-				</div>
-			</Dialog>
-		</Transition.Root>
+				</Dialog>
+			</Transition.Root>
+		</>
 	);
 }
