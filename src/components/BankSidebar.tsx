@@ -21,19 +21,7 @@ interface SlideOverProps {
 	addRarities: () => void;
 }
 
-const parseWhitelistType = (numType: number) => {
-	switch (numType) {
-		case 1:
-			return "Creator";
-		case 2:
-			return "Mint";
-		case 3:
-			return "Mint + Whitelist";
-		default:
-			return "unknown";
-	}
-};
-
+import { parseWhitelistType } from "../utils/helpers";
 interface RadioButtonProps {
 	whitelistType: WhitelistType;
 	setWhitelistType: (e) => void;
@@ -140,7 +128,7 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 								leaveTo="translate-x-full"
 							>
 								<div className="w-screen max-w-2xl">
-									<div className={`${isTransmuterOwner ? "h-2/4" : "h-1/5"} flex flex-col py-6 bg-white shadow-xl justify-between`}>
+									<div className={`${isTransmuterOwner ? "h-2/4" : "h-1/5"} flex flex-col py-6 bg-white shadow-xl justify-evenly`}>
 										<div className="px-4 sm:px-6">
 											<div className="flex items-start justify-between">
 												<Dialog.Title className="text-lg font-medium text-gray-900">Bank {bankPk}</Dialog.Title>

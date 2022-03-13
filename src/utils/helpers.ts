@@ -10,3 +10,16 @@ export function formatPublickey(publicKey: string): string {
 export function parseString(unparsedString: number[]): string {
 	return String.fromCharCode.apply(null, new Uint8Array(unparsedString));
 }
+
+export const parseWhitelistType = (numType: number) => {
+	switch (numType) {
+		case 1:
+			return "Creator";
+		case 2:
+			return "Mint";
+		case 3:
+			return "Mint + Whitelist";
+		default:
+			return "unknown";
+	}
+};

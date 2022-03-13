@@ -17,6 +17,7 @@
     "@saberhq/anchor-contrib": "^1.12.44",
     "@saberhq/solana-contrib": "^1.12.44",
     "@saberhq/token-utils": "^1.12.44",
+    "@solana/spl-token": "^0.2.0",
     "@solana/spl-token-registry": "^0.2.2377",
     "@solana/wallet-adapter-base": "^0.9.3",
     "@solana/wallet-adapter-react": "^0.15.3",

@@ -73,7 +73,10 @@ export default function ManageMutation({ account, publicKey, transmuterWrapper, 
 										)}
 
 										<h1 className="text-gray-900">price per mutation: {account?.config.price?.priceLamports.toNumber() / LAMPORTS_PER_SOL} </h1>
-										{account.config.reversible && <h1 className="text-gray-900">price per reversal: {account?.config.price?.reversalPriceLamports.toNumber() / LAMPORTS_PER_SOL} </h1>}
+										<h1 className="text-gray-900">{publicKey?.toBase58()}</h1>
+										{account?.config?.reversible && (
+											<h1 className="text-gray-900">price per reversal: {account?.config.price?.reversalPriceLamports.toNumber() / LAMPORTS_PER_SOL} </h1>
+										)}
 									</div>
 								</div>
 							</Transition.Child>

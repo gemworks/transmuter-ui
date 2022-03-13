@@ -152,7 +152,6 @@ export const TransmuterView: FC = ({}) => {
 		const transmuterPk = new PublicKey(transmuterPublicKey);
 		const data = await transmuterClient.programs.Transmuter.account.transmuter.fetch(transmuterPk);
 		const { bankA, bankB, bankC, owner } = data;
-	
 
 		setTransmuterOwner(owner);
 		//WRAPPER
@@ -204,11 +203,13 @@ export const TransmuterView: FC = ({}) => {
 					toggleModalOpen();
 				}}
 			/>
-			<ManageMutation 
-			
-			account={selectedMutation}
-			publicKey={selectedMutationPk}
-			transmuterWrapper={transmuterWrapper} open={openMutationManager} toggleState={() => toggleMutationManager()} />
+			<ManageMutation
+				account={selectedMutation}
+				publicKey={selectedMutationPk}
+				transmuterWrapper={transmuterWrapper}
+				open={openMutationManager}
+				toggleState={() => toggleMutationManager()}
+			/>
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="space-y-2">
