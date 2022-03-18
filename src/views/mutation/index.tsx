@@ -408,6 +408,8 @@ export const MutationView: FC = ({}) => {
 	}
 
 	async function executeMutation() {
+
+		
 		//check if tokens were selected by user
 		Object.keys(mutationData?.config).forEach((key) => {
 			if (key.includes("takerToken") && mutationData?.config[key].requiredAmount.toNumber() > 0) {
@@ -423,25 +425,19 @@ export const MutationView: FC = ({}) => {
 			const vaultA = await mutationWrapper.initTakerVault(transmuterWrapper.bankA, wallet.publicKey);
 			const vaultB = await mutationWrapper.initTakerVault(transmuterWrapper.bankB, wallet.publicKey);
 			const vaultC = await mutationWrapper.initTakerVault(transmuterWrapper.bankC, wallet.publicKey);
-	
+
 			// //init all three taker vaults in one trx
 			const largeTx = vaultA.tx.combine(vaultB.tx).combine(vaultC.tx);
-			const res = await largeTx.confirm();
-
-		
-
-		
-
-
+			await largeTx.confirm();
 
 			const { isFromWhiteList, mint, creatorPk } = selectedTokens[mutationData?.config.takerTokenA?.gemBank.toBase58()];
-			
-			// const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankA, new PublicKey(mint));
+
+			const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankA, new PublicKey(mint));
 			let creatorProof_;
-			// if (creatorPk !== undefined && creatorPk !== "") {
-			// 	const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankA, new PublicKey(creatorPk));
-			// 	creatorProof_ = creatorProof;
-			// }
+			if (creatorPk !== undefined && creatorPk !== "") {
+				const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankA, new PublicKey(creatorPk));
+				creatorProof_ = creatorProof;
+			}
 			const ataTokenA = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
 				mint: new PublicKey(mint),
 			});
@@ -453,28 +449,24 @@ export const MutationView: FC = ({}) => {
 				mutationData.config.takerTokenA.requiredAmount,
 				new PublicKey(mint),
 				ataTokenA.value[0].pubkey,
-				// isFromWhiteList ? mintProof : undefined,
-				//@TODO add metadata support
-				// undefined,
-				// isFromWhiteList && creatorProof_ ? creatorProof_ : undefined
-
+				isFromWhiteList && mintProof,
+				// @TODO add metadata support
+				undefined,
+				isFromWhiteList && creatorProof_ && creatorProof_
 			);
 
 			if (selectedTokens[mutationData?.config.takerTokenB?.gemBank.toBase58()].mint !== undefined) {
-			
 				const { isFromWhiteList, mint, creatorPk } = selectedTokens[mutationData?.config.takerTokenB?.gemBank.toBase58()];
-				// const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankB, new PublicKey(mint));
-				// let creatorProof_;
-				// if (creatorPk !== undefined && creatorPk !== "") {
-				// 	const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankB, new PublicKey(creatorPk));
-				// 	creatorProof_ = creatorProof;
-				// }
+				const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankB, new PublicKey(mint));
+				let creatorProof_;
+				if (creatorPk !== undefined && creatorPk !== "") {
+					const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankB, new PublicKey(creatorPk));
+					creatorProof_ = creatorProof;
+				}
 				const ataTokenB = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
 					mint: new PublicKey(mint),
 				});
 
-				
-		
 				await gemBankClient.depositGem(
 					transmuterWrapper.bankB,
 					vaultB.vault,
@@ -482,41 +474,38 @@ export const MutationView: FC = ({}) => {
 					mutationData.config.takerTokenB.requiredAmount,
 					new PublicKey(mint),
 					ataTokenB.value[0].pubkey,
-					// isFromWhiteList ? mintProof : undefined,
-					// //@TODO add metadata support
-					// undefined,
-					// isFromWhiteList && creatorProof_ ? creatorProof_ : undefined
+					isFromWhiteList && mintProof,
+
+					// @TODO add metadata support
+					undefined,
+					isFromWhiteList && creatorProof_ && creatorProof_
 				);
 			}
 
-	
 			if (selectedTokens[mutationData?.config.takerTokenC?.gemBank.toBase58()].mint !== undefined) {
-			
-
 				const { isFromWhiteList, mint, creatorPk } = selectedTokens[mutationData?.config.takerTokenC?.gemBank.toBase58()];
-				// const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankC, new PublicKey(mint));
-				// let creatorProof_;
-				// if (creatorPk !== undefined && creatorPk !== "") {
-				// 	const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankC, new PublicKey(creatorPk));
-				// 	creatorProof_ = creatorProof;
-				// }
-		
+				const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankC, new PublicKey(mint));
+				let creatorProof_;
+				if (creatorPk !== undefined && creatorPk !== "") {
+					const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankC, new PublicKey(creatorPk));
+					creatorProof_ = creatorProof;
+				}
+
 				const ataTokenC = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
 					mint: new PublicKey(mint),
 				});
 				await gemBankClient.depositGem(
 					transmuterWrapper.bankC,
 					vaultC.vault,
-		
 					wallet.publicKey,
 					mutationData.config.takerTokenC.requiredAmount,
 					new PublicKey(mint),
 					ataTokenC.value[0].pubkey,
-					// isFromWhiteList ? mintProof : undefined,
-					// //@TODO add metadata support
-					// undefined,
-					// isFromWhiteList && creatorProof_ ? creatorProof_ : undefined
-				
+					isFromWhiteList && mintProof,
+
+					// @TODO add metadata support
+					undefined,
+					isFromWhiteList && creatorProof_ && creatorProof_
 				);
 			}
 
