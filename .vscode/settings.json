@@ -6,12 +6,7 @@
 		"**/coverage": true
 	},
 	"editor.formatOnSave": true, // auto format the file on each save
-	"eslint.validate": [
-		"javascript",
-		"javascriptreact",
-		"typescript",
-		"typescriptreact"
-	],
+	"eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
 	"eslint.alwaysShowStatus": true,
 	"eslint.format.enable": true,
 	"eslint.lintTask.enable": true,
@@ -23,5 +18,7 @@
 	"jest.enableInlineErrorMessages": true,
 	"jest.showCoverageOnLoad": true,
 	"jest.runAllTestsFirst": false,
-	"workbench.editor.wrapTabs": false
+	"workbench.editor.wrapTabs": false,
+	"editor.wordWrap": "wordWrapColumn",
+	"editor.wordWrapColumn": 160
 }

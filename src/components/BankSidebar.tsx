@@ -102,7 +102,6 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 	async function addToWhiteList() {
 		const { tx } = await transmuterWrapper.addToBankWhitelist(new PublicKey(bankPk), new PublicKey(publicKey), whitelistType);
 		const { response } = await tx.confirm();
-		console.log(response);
 		resetPublicKey();
 		if (response) {
 			await main();
@@ -169,7 +168,12 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 																	{
 																		pending: `Adding ${publicKey}`,
 																		success: `Successfully added ${publicKey}`,
-																		error: "Something went wrong 😕",
+																		error: {
+																			render({ data }) {
+																				//@ts-expect-error
+																				return data.message;
+																			},
+																		},
 																	},
 																	{
 																		position: "bottom-right",

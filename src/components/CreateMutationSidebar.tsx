@@ -87,13 +87,13 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	const [reversePrice, handleReversePriceChange, setReversePrice, resetReversePrice] = useInputState(0);
 
 	//maker vaults
-	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("DoPnWBVs8eHcCBPWnjeqhUATAekyAnmZXP8Sjn1Ma297");
+	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("2WNeT8jPNKB75k9zhS5kPe6YZ9qVq8dLPGsrpVKMdYwU");
 	const [makerAAmountPerUse, handleMakerAAmountPerUseChange, setMakerAAmountPerUse, resetMakerAAmountPerUse] = useInputState(0);
 	const [makerATotalFunding, handleMakerATotalFundingChange, setMakerATotalFunding, resetMakerATotalFunding] = useInputState(0);
-	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("4LcBQBVK9Y2DMc2n9hbrY16hLzzpqucDCe3p4UFqLCku");
+	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("J2HAKi8MXTSU652HtkKu7i7SYdZYNSdJw5KXFXLvzmek");
 	const [makerBAmountPerUse, handleMakerBAmountPerUseChange, setMakerBAmountPerUse, resetMakerBAmountPerUse] = useInputState(0);
 	const [makerBTotalFunding, handleMakerBTotalFundingChange, setMakerBTotalFunding, resetMakerBTotalFunding] = useInputState(0);
-	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("DgUQD9WkJAfW1WDfHNKo6RiT58FZiosCKPgRfA9Xx59Z");
+	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("HCjyKP3XS4YUcNkco1t1UGt2W8WZm2BFbfqPACxDERpU");
 	const [makerCAmountPerUse, handleMakerCAmountPerUseChange, setMakerCAmountPerUse, resetMakerCAmountPerUse] = useInputState(0);
 	const [makerCTotalFunding, handleMakerCTotalFundingChange, setMakerCTotalFunding, resetMakerCTotalFunding] = useInputState(0);
 	//taker vaults
@@ -132,10 +132,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	}
 
 	async function createMutation() {
-		async function prepareMutation_() {
-			try {
-				prepareMutation({
+
+
+				await prepareMutation({
 					sdk: transmuterClient,
+					executionPriceLamports: toBN(executionPrice),
 					transmuter: transmuterWrapper,
 					mutationName: name,
 					owner: wallet.publicKey,
@@ -150,13 +151,13 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 					takerTokenB: {
 						gemBank: transmuterWrapper.bankB,
 						requiredAmount: toBN(parseFloat(takerBAmountPerUse)),
-						requiredUnits: RequiredUnits.RarityPoints,
+						requiredUnits: RequiredUnits.Gems,
 						vaultAction: parseStringToVaultAction(takerBEscrowAction),
 					},
 					takerTokenC: {
 						gemBank: transmuterWrapper.bankC,
 						requiredAmount: toBN(parseFloat(takerCAmountPerUse)),
-						requiredUnits: RequiredUnits.RarityPoints,
+						requiredUnits: RequiredUnits.Gems,
 						vaultAction: parseStringToVaultAction(takerCEscrowAction),
 					},
 					makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
@@ -164,22 +165,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 					makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
 					makerTokenBAmountPerUse: toBN(parseFloat(makerBAmountPerUse)),
 					makerTokenCAmountPerUse: toBN(parseFloat(makerCAmountPerUse)),
+					takerTokenUnits: RequiredUnits.Gems
 				});
-			} catch (err) {
-				console.log(err);
-			}
-		}
-		toast.promise(
-			prepareMutation_(),
-			{
-				pending: `Creating new Mutation`,
-				success: `Successfully created mutation`,
-				error: "something went wrong",
-			},
-			{
-				position: "bottom-right",
-			}
-		);
+
+		
+
 	}
 
 	return (
@@ -550,7 +540,22 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														</button>
 														<button
 															onClick={() => {
-																createMutation();
+																toast.promise(
+																	createMutation,
+																	{
+																		pending: `Creating new Mutation`,
+																		success: `Successfully created mutation`,
+																		error: {
+																			render({ data }) {
+																				//@ts-expect-error
+																				return data.message;
+																			},
+																		},
+																	},
+																	{
+																		position: "bottom-right",
+																	}
+																);
 															}}
 															className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
 														>
