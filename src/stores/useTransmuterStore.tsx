@@ -16,10 +16,10 @@ const useTransmuterStore = create<TransmuterStore>((set, _get) => ({
 			connection,
 			wallet,
 		});
+	
 		let transmuterClient = TransmuterSDK.load({ provider });
 		set((s) => {
 			s.transmuterClient = transmuterClient;
-			console.log(`sdk updated`, s.transmuterClient);
 		});
 	},
 }));

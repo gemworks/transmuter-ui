@@ -105,10 +105,10 @@
     "@ethersproject/logger" "^5.5.0"
     "hash.js" "1.1.7"
 
-"@gemworks/gem-farm-ts@^0.22.2":
-  "integrity" "sha512-XgXNTLGGzSt4zoA3QX90PEzYGe8YbFNO3N2Z6NMz1Z5BE079XvqYuaExG4jHLIyDosjNoLm5BZsyGLzqK6HvLA=="
-  "resolved" "https://registry.npmjs.org/@gemworks/gem-farm-ts/-/gem-farm-ts-0.22.2.tgz"
-  "version" "0.22.2"
+"@gemworks/gem-farm-ts@^0.22.2", "@gemworks/gem-farm-ts@^0.22.8":
+  "integrity" "sha512-oEbuj5P/FwaYN6uM3fg47a6RlfzbXyh33yXl2cQHofr0NV7JGXm7jwxoaXy++WgbOMiFcp/XRZmt1t1x8xXb4A=="
+  "resolved" "https://registry.npmjs.org/@gemworks/gem-farm-ts/-/gem-farm-ts-0.22.8.tgz"
+  "version" "0.22.8"
   dependencies:
     "@metaplex-foundation/mpl-token-metadata" "^0.0.2"
     "@metaplex/js" "^4.9.0"
@@ -117,10 +117,10 @@
     "@solana/wallet-adapter-base" "^0.8.1"
     "@solana/web3.js" "^1.31.0"
 
-"@gemworks/transmuter-ts@^0.22.1":
-  "integrity" "sha512-ybdFf6oBNzO1wH8fOpt7LrUperFYnFGMA3M3KN88ciKYoJ8GwXdKTBXniAyjgPLFfoHPCx8blue95/B5oofZRg=="
-  "resolved" "https://registry.npmjs.org/@gemworks/transmuter-ts/-/transmuter-ts-0.22.1.tgz"
-  "version" "0.22.1"
+"@gemworks/transmuter-ts@^0.22.3":
+  "integrity" "sha512-eUUFtv8n0m8Lfa65MnmkuEWYvIkSQsY/apvXgGF7/AuctI/tXg4sxiMW0kQKaq2yglOUxh+xOWgzOk/B9Fzq7w=="
+  "resolved" "https://registry.npmjs.org/@gemworks/transmuter-ts/-/transmuter-ts-0.22.3.tgz"
+  "version" "0.22.3"
   dependencies:
     "@gemworks/gem-farm-ts" "^0.22.2"
     "@project-serum/anchor" "0.22.0"
@@ -3552,7 +3552,7 @@
     "loose-envify" "^1.4.0"
     "prop-types" "^15.6.2"
 
-"react@^16 || ^17 || ^18", "react@^16.8.0 || ^17.0.0", "react@^17.0.0", "react@^17.0.2 || ^18.0.0-0", "react@>= 16", "react@>= 16.8.0 || 17.x.x || 18.x.x", "react@>=16", "react@>=16.6.0", "react@>=16.8", "react@17.0.2":
+"react@^16 || ^17 || ^18", "react@^16.8.0 || ^17.0.0", "react@^17.0.0", "react@^17.0.2 || ^18.0.0-0", "react@>= 16", "react@>= 16.8.0 || 17.x.x || 18.x.x", "react@>=16", "react@>=16.6.0", "react@>=16.8", "react@>=16.8.0", "react@17.0.2":
   "integrity" "sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA=="
   "resolved" "https://registry.npmjs.org/react/-/react-17.0.2.tgz"
   "version" "17.0.2"
@@ -4136,6 +4136,11 @@
   "version" "1.5.1"
   dependencies:
     "object-assign" "^4.1.1"
+
+"usehooks-ts@^2.4.2":
+  "integrity" "sha512-YqD5HaloGpRSoNaXhAxR+CHTKda44mDtFqNJk5gRuy4qeHVxpp8ycN3LY0txYqNudCVuAk1f8m6M0ojQ5Aph8Q=="
+  "resolved" "https://registry.npmjs.org/usehooks-ts/-/usehooks-ts-2.4.2.tgz"
+  "version" "2.4.2"
 
 "utf-8-validate@^5.0.2":
   "integrity" "sha512-k4dW/Qja1BYDl2qD4tOMB9PFVha/UJtxTc1cXYOe3WwA/2m0Yn4qB7wLMpJyLJ/7DR0XnTut3HsCSzDT4ZvKgA=="

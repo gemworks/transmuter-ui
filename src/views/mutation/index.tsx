@@ -26,7 +26,7 @@ import { GemBankClient, findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 
 import { ToastContainer, toast } from "react-toastify";
 import { formatPublickey } from "../../utils/helpers";
-
+import { useCountdown } from "usehooks-ts";
 interface SelectedTokens {
 	[takerVault: string]: { mint: string; type: string; creatorPk?: string; isFromWhiteList?: boolean };
 }
@@ -63,7 +63,6 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 			for await (const [key, bank] of Object.entries(takerBankWhitelist)) {
 				//just push the key if no address is whitelisted
 
-				console.log({ key, bank });
 				if (bank.length === 0) {
 					aggregatedBalances[key] = { availableMints: {}, whiteListLength: 0 };
 				} else {
@@ -362,7 +361,9 @@ export const MutationView: FC = ({}) => {
 	const { initGemBankClient } = useGembankStore();
 	const [takerBankWhitelist, setTakerBankWhitelist] = useState(null);
 	const [selectedTokens, setSelectedTokens] = useState<SelectedTokens>({});
-
+	const [mutationOwner, setMutationOwner] = useState<PublicKey>(null);
+	const [mutationReceipt, setMutationReceipt] = useState(null);
+	const [timeLeft, setTimeLeft] = useState(-99);
 	useEffect(() => {
 		if (wallet.publicKey && connection) {
 			if (transmuterClient === null) {
@@ -381,18 +382,35 @@ export const MutationView: FC = ({}) => {
 		}
 	}, [mutationPublicKey, transmuterClient]);
 	async function getMutation() {
-		const mutatonPk = new PublicKey(mutationPublicKey);
-		const mutationData = await transmuterClient.programs.Transmuter.account.mutation.fetch(mutatonPk);
+		const mutationPk = new PublicKey(mutationPublicKey);
+		const mutationData = await transmuterClient.programs.Transmuter.account.mutation.fetch(mutationPk);
 		setMutationData(mutationData);
 
-		const mutationWrapper_ = new MutationWrapper(transmuterClient, mutatonPk, mutationData.transmuter, mutationData);
+		const mutationWrapper_ = new MutationWrapper(transmuterClient, mutationPk, mutationData.transmuter, mutationData);
 		setMutationWrapper(mutationWrapper_);
 
 		const transmuterData = await transmuterClient.programs.Transmuter.account.transmuter.fetch(mutationData.transmuter);
-		const { bankA, bankB, bankC } = transmuterData;
+		const { bankA, bankB, bankC, owner } = transmuterData;
+		setMutationOwner(owner);
 
 		//WRAPPER
 		const transmuterWrapper_ = new TransmuterWrapper(transmuterClient, mutationData.transmuter, bankA, bankB, bankC, transmuterData);
+
+		//RECEIPT
+
+		const receipt = await transmuterClient.fetchReceipt(mutationPk, wallet.publicKey);
+
+		if (receipt) {
+			const timeUntilFinished = receipt.mutationCompleteTs.toNumber() - Math.floor(Date.now() / 1000);
+			// const timeUntilFinished = timeUntilFinished - Math.floor(Date.now() / 1000);
+			if (timeUntilFinished > 0) {
+				setTimeLeft(timeUntilFinished);
+			} else {
+				setTimeLeft(0);
+			}
+			setMutationReceipt(receipt);
+			console.log(receipt);
+		}
 
 		const bankAWhitelist = await getAllWhitelistedPDAs(bankA);
 		const bankBWhitelist = await getAllWhitelistedPDAs(bankB);
@@ -407,9 +425,36 @@ export const MutationView: FC = ({}) => {
 		setTransmuterWrapper(transmuterWrapper_);
 	}
 
-	async function executeMutation() {
+	useEffect(() => {
+		// exit early when we reach 0
+		if (!timeLeft) return;
 
-		
+		// save intervalId to clear the interval when the
+		// component re-renders
+		const intervalId = setInterval(() => {
+			setTimeLeft(timeLeft - 1);
+		}, 1000);
+
+		// clear interval on re-render to avoid memory leaks
+		return () => clearInterval(intervalId);
+		// add timeLeft as a dependency to re-rerun the effect
+		// when we update it
+	}, [timeLeft]);
+
+	async function executeMutation() {
+		//claim tokens
+		if (mutationReceipt?.state?.pending && timeLeft === 0) {
+			//execute mutation
+			const { tx } = await mutationWrapper.execute(wallet.publicKey, undefined, mutationOwner);
+			await tx.confirm();
+		}
+
+		// reverse mutation
+		if (mutationReceipt?.state?.complete && mutationData?.config.reversible) {
+			const { tx } = await mutationWrapper.reverse(wallet.publicKey, mutationOwner);
+			await tx.confirm();
+		}
+
 		//check if tokens were selected by user
 		Object.keys(mutationData?.config).forEach((key) => {
 			if (key.includes("takerToken") && mutationData?.config[key].requiredAmount.toNumber() > 0) {
@@ -510,11 +555,11 @@ export const MutationView: FC = ({}) => {
 			}
 
 			//execute mutation
-			const { tx } = await mutationWrapper.execute(wallet.publicKey);
-			const res_ = await tx.confirm();
-			console.log("res", res_);
+			const { tx } = await mutationWrapper.execute(wallet.publicKey, undefined, mutationOwner);
+			await tx.confirm();
 		}
 	}
+
 	async function getAllWhitelistedPDAs(bank: PublicKey) {
 		const whitelistPdas = await gemBankClient.fetchAllWhitelistProofPDAs(bank);
 		const whitelistPdas_ = whitelistPdas.map((item) => {
@@ -533,6 +578,7 @@ export const MutationView: FC = ({}) => {
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900 uppercase pb-4">{new TextDecoder().decode(new Uint8Array(mutationData?.name))}</h1>
+
 					<div className="flex items-center text-sm flex-wrap space-y-2 sm:space-y-0 space-x-8 justify-center sm:justify-start">
 						<div className="flex items-center ">
 							<BeakerIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -564,6 +610,7 @@ export const MutationView: FC = ({}) => {
 							</div>
 						)}
 					</div>
+					{mutationReceipt?.state?.pending && timeLeft > 0 && <div className="text-gray-800">{timeLeft}s until Mutation is finished</div>}
 
 					<button
 						onClick={() => {
@@ -584,12 +631,16 @@ export const MutationView: FC = ({}) => {
 								}
 							);
 						}}
-						disabled={!wallet.publicKey}
+						disabled={!wallet.publicKey || (mutationReceipt?.state?.pending && timeLeft > 0) || (mutationReceipt?.state?.complete && !mutationData?.config.reversible)}
 						type="button"
 						className="disabled:opacity-50 disabled:cursor-not-allowed mt-10 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 duration-150 transition-all ease-in"
 					>
 						<BeakerIcon className="-ml-1 mr-3 h-5 w-5" aria-hidden="true" />
-						Start Mutation
+						{mutationReceipt?.state?.pending && timeLeft > 0 && `Mutation is pending`}
+						{mutationReceipt?.state?.pending && timeLeft === 0 && `Claim your tokens`}
+						{mutationReceipt?.state?.complete && mutationData?.config.reversible && `Reverse Mutation`}
+						{mutationReceipt?.state?.complete && !mutationData?.config.reversible && `Can't Reverse Mutation`}
+						{timeLeft === -99 && !mutationReceipt && "Start Mutation"}
 					</button>
 				</div>
 			</header>

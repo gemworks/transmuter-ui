@@ -91,7 +91,7 @@ export const TransmutersView: FC = ({}) => {
 
 	async function getTransmuters(sdk_: TransmuterSDK) {
 		const accounts = await sdk_.programs.Transmuter.account.transmuter.all();
-
+		console.log("accounts", accounts)
 		const transmuters = accounts.filter((account) => account.account.owner.toBase58() == wallet.publicKey.toBase58());
 		transmuters.forEach((transmuter) => console.log(transmuter.account.owner.toBase58()));
 		setTransmuters(transmuters);
@@ -117,7 +117,7 @@ export const TransmutersView: FC = ({}) => {
 
 	return (
 		<div className="py-10">
-			<ToastContainer/>
+			<ToastContainer />
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900">Transmuters</h1>
@@ -140,7 +140,6 @@ export const TransmutersView: FC = ({}) => {
 									position: "bottom-right",
 								}
 							);
-						
 						}}
 						disabled={!wallet.publicKey}
 						type="button"
