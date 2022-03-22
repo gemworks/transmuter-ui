@@ -23,3 +23,13 @@ export const parseWhitelistType = (numType: number) => {
 			return "unknown";
 	}
 };
+
+export function parseSecondsToDate(seconds_: number): string {
+	const days = Math.floor(seconds_ / 86400);
+
+	const hours = Math.floor((seconds_ % 3600) / 60);
+	const minutes = Math.floor((seconds_ % 3600) / 60);
+	const seconds = Math.floor((seconds_ % 3600) % 60);
+
+	return ("0" + days).slice(-2) + " days " + ("0" + hours).slice(-2) + " hours " + ("0" + minutes).slice(-2) + " minutes " + ("0" + seconds).slice(-2) + " seconds ";
+}

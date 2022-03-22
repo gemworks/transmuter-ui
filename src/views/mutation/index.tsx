@@ -12,7 +12,7 @@ import GradientAvatar from "components/GradientAvatar";
 
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
-import { PlusIcon, RefreshIcon, ClockIcon, BeakerIcon, TrendingUpIcon, TrendingDownIcon } from "@heroicons/react/solid";
+import { PlusIcon, RefreshIcon, ClockIcon, BeakerIcon, TrendingUpIcon, TrendingDownIcon, CheckCircleIcon } from "@heroicons/react/solid";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 
 import { SolanaProvider, Wallet } from "@saberhq/solana-contrib";
@@ -25,8 +25,7 @@ import { parseWhitelistType } from "../../utils/helpers";
 import { GemBankClient, findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 
 import { ToastContainer, toast } from "react-toastify";
-import { formatPublickey } from "../../utils/helpers";
-import { useCountdown } from "usehooks-ts";
+import { formatPublickey, parseSecondsToDate } from "../../utils/helpers";
 interface SelectedTokens {
 	[takerVault: string]: { mint: string; type: string; creatorPk?: string; isFromWhiteList?: boolean };
 }
@@ -363,7 +362,7 @@ export const MutationView: FC = ({}) => {
 	const [selectedTokens, setSelectedTokens] = useState<SelectedTokens>({});
 	const [mutationOwner, setMutationOwner] = useState<PublicKey>(null);
 	const [mutationReceipt, setMutationReceipt] = useState(null);
-	const [timeLeft, setTimeLeft] = useState(-99);
+	const [timeLeft, setTimeLeft] = useState<{ raw: number; formatted: string }>({ raw: -99, formatted: "" });
 	useEffect(() => {
 		if (wallet.publicKey && connection) {
 			if (transmuterClient === null) {
@@ -402,14 +401,15 @@ export const MutationView: FC = ({}) => {
 
 		if (receipt) {
 			const timeUntilFinished = receipt.mutationCompleteTs.toNumber() - Math.floor(Date.now() / 1000);
-			// const timeUntilFinished = timeUntilFinished - Math.floor(Date.now() / 1000);
+
+			const formattedTime = parseSecondsToDate(timeUntilFinished);
 			if (timeUntilFinished > 0) {
-				setTimeLeft(timeUntilFinished);
+				setTimeLeft({ raw: timeUntilFinished, formatted: formattedTime });
 			} else {
-				setTimeLeft(0);
+				setTimeLeft({ raw: 0, formatted: formattedTime });
 			}
+
 			setMutationReceipt(receipt);
-			console.log(receipt);
 		}
 
 		const bankAWhitelist = await getAllWhitelistedPDAs(bankA);
@@ -427,12 +427,14 @@ export const MutationView: FC = ({}) => {
 
 	useEffect(() => {
 		// exit early when we reach 0
-		if (!timeLeft) return;
+		if (!timeLeft.raw) return;
 
 		// save intervalId to clear the interval when the
 		// component re-renders
 		const intervalId = setInterval(() => {
-			setTimeLeft(timeLeft - 1);
+			const formattedTime = parseSecondsToDate(timeLeft.raw - 1);
+			console.log(timeLeft.raw);
+			setTimeLeft({ raw: timeLeft.raw - 1, formatted: formattedTime });
 		}, 1000);
 
 		// clear interval on re-render to avoid memory leaks
@@ -443,7 +445,7 @@ export const MutationView: FC = ({}) => {
 
 	async function executeMutation() {
 		//claim tokens
-		if (mutationReceipt?.state?.pending && timeLeft === 0) {
+		if (mutationReceipt?.state?.pending && timeLeft.raw === 0) {
 			//execute mutation
 			const { tx } = await mutationWrapper.execute(wallet.publicKey, undefined, mutationOwner);
 			await tx.confirm();
@@ -610,7 +612,33 @@ export const MutationView: FC = ({}) => {
 							</div>
 						)}
 					</div>
-					{mutationReceipt?.state?.pending && timeLeft > 0 && <div className="text-gray-800">{timeLeft}s until Mutation is finished</div>}
+
+					{(mutationReceipt?.state?.complete || mutationReceipt?.state?.pending) && (
+						<div className="mt-3 flex items-center text-sm text-gray-800 font-medium sm:mr-6 sm:mt-0 py-4">
+							{mutationReceipt?.state?.pending && timeLeft.raw > 0 && (
+								<>
+									{" "}
+									<ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" aria-hidden="true" />
+									{timeLeft.formatted} until the Mutation is finished
+								</>
+							)}
+							{mutationReceipt?.state?.pending && timeLeft.raw === 0 && (
+								<>
+									{" "}
+									<ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" aria-hidden="true" />
+									Mutation is complete, claim your tokens
+								</>
+							)}
+
+							{mutationReceipt?.state?.complete && (
+								<>
+									{" "}
+									<CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" aria-hidden="true" />
+									Mutation is complete
+								</>
+							)}
+						</div>
+					)}
 
 					<button
 						onClick={() => {
@@ -631,16 +659,16 @@ export const MutationView: FC = ({}) => {
 								}
 							);
 						}}
-						disabled={!wallet.publicKey || (mutationReceipt?.state?.pending && timeLeft > 0) || (mutationReceipt?.state?.complete && !mutationData?.config.reversible)}
+						disabled={!wallet.publicKey || (mutationReceipt?.state?.pending && timeLeft.raw > 0) || (mutationReceipt?.state?.complete && !mutationData?.config.reversible)}
 						type="button"
-						className="disabled:opacity-50 disabled:cursor-not-allowed mt-10 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 duration-150 transition-all ease-in"
+						className="disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 duration-150 transition-all ease-in"
 					>
 						<BeakerIcon className="-ml-1 mr-3 h-5 w-5" aria-hidden="true" />
-						{mutationReceipt?.state?.pending && timeLeft > 0 && `Mutation is pending`}
-						{mutationReceipt?.state?.pending && timeLeft === 0 && `Claim your tokens`}
+						{mutationReceipt?.state?.pending && timeLeft.raw > 0 && `Mutation is pending`}
+						{mutationReceipt?.state?.pending && timeLeft.raw === 0 && `Claim tokens`}
 						{mutationReceipt?.state?.complete && mutationData?.config.reversible && `Reverse Mutation`}
 						{mutationReceipt?.state?.complete && !mutationData?.config.reversible && `Can't Reverse Mutation`}
-						{timeLeft === -99 && !mutationReceipt && "Start Mutation"}
+						{timeLeft.raw === -99 && !mutationReceipt && "Start Mutation"}
 					</button>
 				</div>
 			</header>
