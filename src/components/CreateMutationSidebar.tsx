@@ -1,7 +1,6 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XIcon } from "@heroicons/react/outline";
-import { LinkIcon, PlusSmIcon, QuestionMarkCircleIcon } from "@heroicons/react/solid";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Switch } from "@headlessui/react";
 import { useInputState } from "../utils/hooks/hooks";
@@ -11,7 +10,7 @@ import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { toBN } from "@gemworks/gem-farm-ts";
 import { prepareMutation } from "../utils/mutations";
 import { ToastContainer, toast } from "react-toastify";
-import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
+import { RequiredUnits, VaultAction, TransmuterWrapper } from "@gemworks/transmuter-ts";
 
 function classNames(...classes) {
 	return classes.filter(Boolean).join(" ");
@@ -132,44 +131,40 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	}
 
 	async function createMutation() {
-
-
-				await prepareMutation({
-					sdk: transmuterClient,
-					executionPriceLamports: toBN(executionPrice),
-					transmuter: transmuterWrapper,
-					mutationName: name,
-					owner: wallet.publicKey,
-					vaultAction: parseStringToVaultAction(takerAEscrowAction),
-					mutationDurationSec: toBN(parseFloat(mutationDuration)),
-					reversible: enabled,
-					uses: toBN(parseFloat(usages)),
-					reversalPriceLamports: toBN(parseFloat(reversePrice) * LAMPORTS_PER_SOL),
-					makerMintA: new PublicKey(makerATokenAddress),
-					makerMintB: new PublicKey(makerBTokenAddress),
-					makerMintC: new PublicKey(makerCTokenAddress),
-					takerTokenB: {
-						gemBank: transmuterWrapper.bankB,
-						requiredAmount: toBN(parseFloat(takerBAmountPerUse)),
-						requiredUnits: RequiredUnits.Gems,
-						vaultAction: parseStringToVaultAction(takerBEscrowAction),
-					},
-					takerTokenC: {
-						gemBank: transmuterWrapper.bankC,
-						requiredAmount: toBN(parseFloat(takerCAmountPerUse)),
-						requiredUnits: RequiredUnits.Gems,
-						vaultAction: parseStringToVaultAction(takerCEscrowAction),
-					},
-					makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
-					takerTokenAmount: toBN(parseFloat(takerAAmountPerUse)),
-					makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
-					makerTokenBAmountPerUse: toBN(parseFloat(makerBAmountPerUse)),
-					makerTokenCAmountPerUse: toBN(parseFloat(makerCAmountPerUse)),
-					takerTokenUnits: RequiredUnits.Gems
-				});
-
-		
-
+		console.log({b: parseFloat(makerBAmountPerUse), c: parseFloat(makerCAmountPerUse)})
+		await prepareMutation({
+			sdk: transmuterClient,
+			executionPriceLamports:toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
+			transmuter: transmuterWrapper,
+			mutationName: name,
+			owner: wallet.publicKey,
+			vaultAction: parseStringToVaultAction(takerAEscrowAction),
+			mutationDurationSec: toBN(parseFloat(mutationDuration)),
+			reversible: enabled,
+			uses: toBN(parseFloat(usages)),
+			reversalPriceLamports: toBN(parseFloat(reversePrice) * LAMPORTS_PER_SOL),
+			makerMintA: new PublicKey(makerATokenAddress),
+			makerMintB: makerBAmountPerUse && new PublicKey(makerBTokenAddress),
+			makerMintC: makerCAmountPerUse && new PublicKey(makerCTokenAddress),
+			takerTokenB: {
+				gemBank: transmuterWrapper.bankB,
+				requiredAmount: toBN(parseFloat(takerBAmountPerUse)),
+				requiredUnits: RequiredUnits.Gems,
+				vaultAction: parseStringToVaultAction(takerBEscrowAction),
+			},
+			takerTokenC: {
+				gemBank: transmuterWrapper.bankC,
+				requiredAmount: toBN(parseFloat(takerCAmountPerUse)),
+				requiredUnits: RequiredUnits.Gems,
+				vaultAction: parseStringToVaultAction(takerCEscrowAction),
+			},
+			makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
+			takerTokenAmount: toBN(parseFloat(takerAAmountPerUse)),
+			makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
+			makerTokenBAmountPerUse: makerBAmountPerUse > 0 && toBN(parseFloat(makerBAmountPerUse)),
+			makerTokenCAmountPerUse: makerCAmountPerUse > 0 && toBN(parseFloat(makerCAmountPerUse)),
+			takerTokenUnits: RequiredUnits.Gems,
+		});
 	}
 
 	return (

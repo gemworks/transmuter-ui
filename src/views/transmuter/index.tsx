@@ -205,7 +205,7 @@ export const TransmuterView: FC = ({}) => {
 			/>
 			<ManageMutation
 				account={selectedMutation}
-				publicKey={selectedMutationPk}
+				mutationPublicKey={selectedMutationPk}
 				transmuterWrapper={transmuterWrapper}
 				open={openMutationManager}
 				toggleState={() => toggleMutationManager()}
@@ -218,7 +218,7 @@ export const TransmuterView: FC = ({}) => {
 								transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
 							}`}
 						>
-							{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() ? "You're Transmuter Owner" : "Not the Transmuter Owner"}
+							{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() ? "You're the Owner" : "Not the Owner"}
 						</span>
 						<h1 className="text-2xl font-bold leading-tight text-gray-900">Transmuter {transmuterPublicKey}</h1>
 					</div>
@@ -271,15 +271,15 @@ export const TransmuterView: FC = ({}) => {
 						{mutations.map((mutation) => (
 							<li
 								onClick={() => {
-									// setSelectedMutation(mutation.account);
-									// setSelectedMutationPk(mutation.publicKey);
-									// if (selectedMutation !== null) {
-									// 	toggleMutationManager();
-									// }
+									setSelectedMutation(mutation.account);
+									setSelectedMutationPk(mutation.publicKey);
+									if (selectedMutation !== null) {
+										toggleMutationManager();
+									}
 								}}
 								className="relative"
 							>
-									<Link href={`/mutation/${mutation.publicKey.toBase58()}`}>
+									{/* <Link href={`/mutation/${mutation.publicKey.toBase58()}`}> */}
 								<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
 									<div className="pl-4">
 										<h2 className=" pt-4 text-base font-semibold">"{parseString(mutation.account.name)}" </h2>
@@ -290,7 +290,7 @@ export const TransmuterView: FC = ({}) => {
 										<span className="sr-only">View details for Mutation</span>
 									</button>
 								</div>
-								</Link>
+								{/* </Link> */}
 							</li>
 						))}
 					</ul>

@@ -26,10 +26,24 @@ export const parseWhitelistType = (numType: number) => {
 
 export function parseSecondsToDate(seconds_: number): string {
 	const days = Math.floor(seconds_ / 86400);
-
-	const hours = Math.floor((seconds_ % 3600) / 60);
+	const hours = Math.floor(seconds_ / 3600);
 	const minutes = Math.floor((seconds_ % 3600) / 60);
 	const seconds = Math.floor((seconds_ % 3600) % 60);
 
-	return ("0" + days).slice(-2) + " days " + ("0" + hours).slice(-2) + " hours " + ("0" + minutes).slice(-2) + " minutes " + ("0" + seconds).slice(-2) + " seconds ";
+	let remainingTime = "";
+
+	if (days > 0) {
+		remainingTime = ("0" + days).slice(-2) + " days ";
+	}
+
+	if (hours > 0) {
+		remainingTime += ("0" + hours).slice(-2) + " hours ";
+	}
+	if (minutes > 0) {
+		remainingTime += ("0" + minutes).slice(-2) + " minutes ";
+	}
+	if (seconds > 0) {
+		remainingTime += ("0" + seconds).slice(-2) + " seconds";
+	}
+	return remainingTime;
 }

@@ -184,7 +184,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 		}
 
 		toast.promise(
-			hasSufficientTokenBalance_(),
+			hasSufficientTokenBalance_,
 			{
 				pending: `getting data`,
 				error: "something went wrong",
@@ -315,7 +315,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 						if (key.includes("makerToken")) {
 							return (
 								<div key={key}>
-									{key.includes("makerToken") && (
+									{key.includes("makerToken") && mutation[key]?.amountPerUse.toNumber() > 0 && (
 										<div>
 											<div className="py-5 border-b border-gray-200">
 												<h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -376,10 +376,10 @@ export const MutationView: FC = ({}) => {
 	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
-		if (transmuterClient) {
+		if (transmuterClient && wallet.publicKey) {
 			getMutation();
 		}
-	}, [mutationPublicKey, transmuterClient]);
+	}, [mutationPublicKey, transmuterClient, wallet.publicKey]);
 	async function getMutation() {
 		const mutationPk = new PublicKey(mutationPublicKey);
 		const mutationData = await transmuterClient.programs.Transmuter.account.mutation.fetch(mutationPk);
@@ -396,20 +396,22 @@ export const MutationView: FC = ({}) => {
 		const transmuterWrapper_ = new TransmuterWrapper(transmuterClient, mutationData.transmuter, bankA, bankB, bankC, transmuterData);
 
 		//RECEIPT
-
-		const receipt = await transmuterClient.fetchReceipt(mutationPk, wallet.publicKey);
-
-		if (receipt) {
-			const timeUntilFinished = receipt.mutationCompleteTs.toNumber() - Math.floor(Date.now() / 1000);
+		setTimeLeft({ raw: -99, formatted: "" });
+		const receipts = await transmuterClient.findAllReceipts(undefined, mutationPk);
+		const takerReceipt = receipts.filter((receipt) => receipt.account.taker.toBase58() === wallet.publicKey.toBase58());
+		if (takerReceipt.length > 0) {
+			const timeUntilFinished = takerReceipt[0].account.mutationCompleteTs.toNumber() - Math.floor(Date.now() / 1000);
 
 			const formattedTime = parseSecondsToDate(timeUntilFinished);
 			if (timeUntilFinished > 0) {
 				setTimeLeft({ raw: timeUntilFinished, formatted: formattedTime });
+			} else if (takerReceipt[0].account.state?.notStarted) {
+				setTimeLeft({ raw: -99, formatted: "" });
 			} else {
 				setTimeLeft({ raw: 0, formatted: formattedTime });
 			}
 
-			setMutationReceipt(receipt);
+			setMutationReceipt(takerReceipt[0].account);
 		}
 
 		const bankAWhitelist = await getAllWhitelistedPDAs(bankA);
@@ -427,13 +429,13 @@ export const MutationView: FC = ({}) => {
 
 	useEffect(() => {
 		// exit early when we reach 0
-		if (!timeLeft.raw) return;
+		if (!timeLeft.raw || timeLeft.raw === -99) return;
 
 		// save intervalId to clear the interval when the
 		// component re-renders
 		const intervalId = setInterval(() => {
 			const formattedTime = parseSecondsToDate(timeLeft.raw - 1);
-			console.log(timeLeft.raw);
+
 			setTimeLeft({ raw: timeLeft.raw - 1, formatted: formattedTime });
 		}, 1000);
 
@@ -502,7 +504,7 @@ export const MutationView: FC = ({}) => {
 				isFromWhiteList && creatorProof_ && creatorProof_
 			);
 
-			if (selectedTokens[mutationData?.config.takerTokenB?.gemBank.toBase58()].mint !== undefined) {
+			if (selectedTokens[mutationData?.config.takerTokenB?.gemBank.toBase58()]?.mint !== undefined) {
 				const { isFromWhiteList, mint, creatorPk } = selectedTokens[mutationData?.config.takerTokenB?.gemBank.toBase58()];
 				const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankB, new PublicKey(mint));
 				let creatorProof_;
@@ -529,7 +531,7 @@ export const MutationView: FC = ({}) => {
 				);
 			}
 
-			if (selectedTokens[mutationData?.config.takerTokenC?.gemBank.toBase58()].mint !== undefined) {
+			if (selectedTokens[mutationData?.config.takerTokenC?.gemBank.toBase58()]?.mint !== undefined) {
 				const { isFromWhiteList, mint, creatorPk } = selectedTokens[mutationData?.config.takerTokenC?.gemBank.toBase58()];
 				const [mintProof, bump] = await findWhitelistProofPDA(transmuterWrapper.bankC, new PublicKey(mint));
 				let creatorProof_;
@@ -558,7 +560,11 @@ export const MutationView: FC = ({}) => {
 
 			//execute mutation
 			const { tx } = await mutationWrapper.execute(wallet.publicKey, undefined, mutationOwner);
-			await tx.confirm();
+			const { signature } = await tx.confirm();
+
+			if (signature) {
+				await getMutation();
+			}
 		}
 	}
 
@@ -578,10 +584,10 @@ export const MutationView: FC = ({}) => {
 		<div className="py-10">
 			<ToastContainer />
 			<header>
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<h1 className="text-3xl font-bold leading-tight text-gray-900 uppercase pb-4">{new TextDecoder().decode(new Uint8Array(mutationData?.name))}</h1>
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+					<h1 className="text-3xl font-bold leading-tight text-gray-900 uppercase ">{new TextDecoder().decode(new Uint8Array(mutationData?.name))}</h1>
 
-					<div className="flex items-center text-sm flex-wrap space-y-2 sm:space-y-0 space-x-8 justify-center sm:justify-start">
+					<div className="flex flex-col sm:flex-row items-center text-sm flex-wrap justify-start sm:space-x-4">
 						<div className="flex items-center ">
 							<BeakerIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
 							<span className="text-gray-800 font-medium pl-1.5">
@@ -593,11 +599,11 @@ export const MutationView: FC = ({}) => {
 						<div className="flex items-center">
 							<ClockIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
 							<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.mutationDurationSec.toNumber()}s</span>
-							<span className="text-gray-400 pl-1">to finish</span>
+							<span className="text-gray-400 pl-1">to finish</span> 
 						</div>
 						<div className="flex items-center">
 							<RefreshIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-							<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config.reversible ? "reversable" : "irreversible"}</span>
+							<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.reversible ? "reversable" : "irreversible"}</span>
 						</div>
 						<div className="flex items-center">
 							<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
@@ -614,12 +620,12 @@ export const MutationView: FC = ({}) => {
 					</div>
 
 					{(mutationReceipt?.state?.complete || mutationReceipt?.state?.pending) && (
-						<div className="mt-3 flex items-center text-sm text-gray-800 font-medium sm:mr-6 sm:mt-0 py-4">
+						<div className=" flex items-center text-sm text-gray-800 font-medium sm:mr-6 sm:mt-0">
 							{mutationReceipt?.state?.pending && timeLeft.raw > 0 && (
 								<>
 									{" "}
 									<ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" aria-hidden="true" />
-									{timeLeft.formatted} until the Mutation is finished
+									{timeLeft.formatted} <span className="text-gray-400 pl-1.5">until the Mutation is finished</span>
 								</>
 							)}
 							{mutationReceipt?.state?.pending && timeLeft.raw === 0 && (
@@ -645,7 +651,7 @@ export const MutationView: FC = ({}) => {
 							toast.promise(
 								executeMutation,
 								{
-									pending: "Authenticating",
+									pending: "Loading",
 									success: "Success!🎉",
 									error: {
 										render({ data }) {
@@ -666,9 +672,9 @@ export const MutationView: FC = ({}) => {
 						<BeakerIcon className="-ml-1 mr-3 h-5 w-5" aria-hidden="true" />
 						{mutationReceipt?.state?.pending && timeLeft.raw > 0 && `Mutation is pending`}
 						{mutationReceipt?.state?.pending && timeLeft.raw === 0 && `Claim tokens`}
-						{mutationReceipt?.state?.complete && mutationData?.config.reversible && `Reverse Mutation`}
-						{mutationReceipt?.state?.complete && !mutationData?.config.reversible && `Can't Reverse Mutation`}
-						{timeLeft.raw === -99 && !mutationReceipt && "Start Mutation"}
+						{mutationReceipt?.state?.complete && mutationData?.config.reversible && `Reverse mutation`}
+						{mutationReceipt?.state?.complete && !mutationData?.config.reversible && `Can't reverse mutation`}
+						{timeLeft.raw === -99 && (!mutationReceipt || mutationReceipt?.state?.notStarted) && "Start mutation"}
 					</button>
 				</div>
 			</header>
