@@ -20,7 +20,7 @@ import useGembankStore from "../../stores/useGembankStore";
 import { prepareMutation } from "../../utils/mutations";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
-import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid } from "@heroicons/react/solid";
+import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid } from "@heroicons/react/outline";
 // import { SolanaProvider } from "@saberhq/solana-contrib";
 import { useRouter } from "next/router";
 import { SolanaProvider } from "@saberhq/solana-contrib";
@@ -204,7 +204,7 @@ export const TransmuterView: FC = ({}) => {
 				}}
 			/>
 			<ManageMutation
-				account={selectedMutation}
+				mutationData={selectedMutation}
 				mutationPublicKey={selectedMutationPk}
 				transmuterWrapper={transmuterWrapper}
 				open={openMutationManager}
@@ -279,7 +279,7 @@ export const TransmuterView: FC = ({}) => {
 								}}
 								className="relative"
 							>
-									{/* <Link href={`/mutation/${mutation.publicKey.toBase58()}`}> */}
+								{/* <Link href={`/mutation/${mutation.publicKey.toBase58()}`}> */}
 								<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
 									<div className="pl-4">
 										<h2 className=" pt-4 text-base font-semibold">"{parseString(mutation.account.name)}" </h2>

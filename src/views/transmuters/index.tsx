@@ -11,7 +11,7 @@ import pkg from "../../../package.json";
 
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
-import { PlusIcon } from "@heroicons/react/solid";
+import { PlusIcon } from "@heroicons/react/outline";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 import { TransmuterSDK } from "@gemworks/transmuter-ts";
 import { SolanaProvider } from "@saberhq/solana-contrib";
@@ -91,7 +91,7 @@ export const TransmutersView: FC = ({}) => {
 
 	async function getTransmuters(sdk_: TransmuterSDK) {
 		const accounts = await sdk_.programs.Transmuter.account.transmuter.all();
-		console.log("accounts", accounts)
+		console.log("accounts", accounts);
 		const transmuters = accounts.filter((account) => account.account.owner.toBase58() == wallet.publicKey.toBase58());
 		transmuters.forEach((transmuter) => console.log(transmuter.account.owner.toBase58()));
 		setTransmuters(transmuters);

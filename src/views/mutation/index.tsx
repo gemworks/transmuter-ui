@@ -1,28 +1,25 @@
 // Next, React
 import { FC, useEffect, useState } from "react";
-import Link from "next/link";
 
 // Wallet
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
 // Components
-import { RequestAirdrop } from "../../components/RequestAirdrop";
-import pkg from "../../../package.json";
 import GradientAvatar from "components/GradientAvatar";
 
 // Store
-import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
-import { PlusIcon, RefreshIcon, ClockIcon, BeakerIcon, TrendingUpIcon, TrendingDownIcon, CheckCircleIcon } from "@heroicons/react/solid";
+
+import { RefreshIcon, ClockIcon, BeakerIcon, TrendingUpIcon, TrendingDownIcon, CheckCircleIcon } from "@heroicons/react/outline";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 
-import { SolanaProvider, Wallet } from "@saberhq/solana-contrib";
-import { Connection, PublicKey, Transaction, TransactionInstruction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {  Wallet } from "@saberhq/solana-contrib";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { useRouter } from "next/router";
-import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, TransmuterSDK, TransmuterWrapper, MutationWrapper, MutationData } from "@gemworks/transmuter-ts";
+import { TransmuterWrapper, MutationWrapper, MutationData } from "@gemworks/transmuter-ts";
 import useGembankStore from "../../stores/useGembankStore";
 import { parseWhitelistType } from "../../utils/helpers";
-import { GemBankClient, findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
+import { findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 
 import { ToastContainer, toast } from "react-toastify";
 import { formatPublickey, parseSecondsToDate } from "../../utils/helpers";
@@ -599,7 +596,7 @@ export const MutationView: FC = ({}) => {
 						<div className="flex items-center">
 							<ClockIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
 							<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.mutationDurationSec.toNumber()}s</span>
-							<span className="text-gray-400 pl-1">to finish</span> 
+							<span className="text-gray-400 pl-1">to finish</span>
 						</div>
 						<div className="flex items-center">
 							<RefreshIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
