@@ -579,7 +579,7 @@ export const MutationView: FC = ({}) => {
 
 	return (
 		<div className="py-10">
-			<ToastContainer />
+			<ToastContainer theme="colored"/>
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900 uppercase ">{new TextDecoder().decode(new Uint8Array(mutationData?.name))}</h1>

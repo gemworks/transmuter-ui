@@ -67,7 +67,7 @@ export function ToggleSwitch({ enabled, toggleSwitch }: ToggleSwitchProps) {
 interface CreateMutationSidebarProps {
 	open: boolean;
 	toggleState: () => void;
-	banks: string[];
+	banks: {publicKey: string; letter: string}[];
 	transmuterWrapper: TransmuterWrapper;
 	setBank: (bank: string) => void;
 	openBank: () => void;
@@ -86,13 +86,13 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	const [reversePrice, handleReversePriceChange, setReversePrice, resetReversePrice] = useInputState(0);
 
 	//maker vaults
-	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("2WNeT8jPNKB75k9zhS5kPe6YZ9qVq8dLPGsrpVKMdYwU");
+	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("8grhrMATijZHe72Hhyk6aMUM6tQLBahcmq1SR59jBwSw");
 	const [makerAAmountPerUse, handleMakerAAmountPerUseChange, setMakerAAmountPerUse, resetMakerAAmountPerUse] = useInputState(0);
 	const [makerATotalFunding, handleMakerATotalFundingChange, setMakerATotalFunding, resetMakerATotalFunding] = useInputState(0);
-	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("J2HAKi8MXTSU652HtkKu7i7SYdZYNSdJw5KXFXLvzmek");
+	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("BYGKyq8cmXzvho3GNAsoYVPh5BuAsEVvbo1HYSWyW6E7");
 	const [makerBAmountPerUse, handleMakerBAmountPerUseChange, setMakerBAmountPerUse, resetMakerBAmountPerUse] = useInputState(0);
 	const [makerBTotalFunding, handleMakerBTotalFundingChange, setMakerBTotalFunding, resetMakerBTotalFunding] = useInputState(0);
-	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("HCjyKP3XS4YUcNkco1t1UGt2W8WZm2BFbfqPACxDERpU");
+	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("3e1QSgpn9L2eNo41xShD7z3jFMTHA6jkv85CmRSpHJmz");
 	const [makerCAmountPerUse, handleMakerCAmountPerUseChange, setMakerCAmountPerUse, resetMakerCAmountPerUse] = useInputState(0);
 	const [makerCTotalFunding, handleMakerCTotalFundingChange, setMakerCTotalFunding, resetMakerCTotalFunding] = useInputState(0);
 	//taker vaults
@@ -131,7 +131,6 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	}
 
 	async function createMutation() {
-		console.log({b: parseFloat(makerBAmountPerUse), c: parseFloat(makerCAmountPerUse)})
 		await prepareMutation({
 			sdk: transmuterClient,
 			executionPriceLamports:toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
@@ -484,11 +483,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														amountPerUse={takerAAmountPerUse}
 														setAmountPerUse={setTakerAAmountPerUse}
 														handleAmountPerUseChange={handleTakerAAmountPerUseChange}
-														name={banks[0]}
+														name={banks[0]?.publicKey}
 														type="Taker"
 														openBank={openBank}
 														setBank={() => {
-															setBank(banks[0]);
+															setBank(banks[0]?.publicKey);
 														}}
 													/>
 													<Vault
@@ -499,11 +498,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														amountPerUse={takerBAmountPerUse}
 														setAmountPerUse={setTakerBAmountPerUse}
 														handleAmountPerUseChange={handleTakerBAmountPerUseChange}
-														name={banks[1]}
+														name={banks[1]?.publicKey}
 														type="Taker"
 														openBank={openBank}
 														setBank={() => {
-															setBank(banks[1]);
+															setBank(banks[1]?.publicKey);
 														}}
 													/>
 													<Vault
@@ -514,11 +513,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														amountPerUse={takerCAmountPerUse}
 														setAmountPerUse={setTakerCAmountPerUse}
 														handleAmountPerUseChange={handleTakerCAmountPerUseChange}
-														name={banks[2]}
+														name={banks[2]?.publicKey}
 														type="Taker"
 														openBank={openBank}
 														setBank={() => {
-															setBank(banks[2]);
+															setBank(banks[2]?.publicKey);
 														}}
 													/>
 												</div>

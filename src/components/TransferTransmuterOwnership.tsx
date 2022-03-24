@@ -7,20 +7,19 @@ import { useInputState } from "utils/hooks/hooks";
 import { ToastContainer, toast } from "react-toastify";
 import { PublicKey } from "@solana/web3.js";
 import { TransmuterWrapper } from "@gemworks/transmuter-ts";
-interface TransferOwnershipProps {
+interface TransferTransmuterOwnershipProps {
 	isOpen: boolean;
 	toggleModal: () => void;
 	transmuterWrapper: TransmuterWrapper;
 }
 
-export default function TransferOwnership({ isOpen, toggleModal, transmuterWrapper }: TransferOwnershipProps) {
+export default function TransferTransmuterOwnership({ isOpen, toggleModal, transmuterWrapper }: TransferTransmuterOwnershipProps) {
 	const [open, setOpen] = useState(true);
 	const cancelButtonRef = useRef(null);
 	//Inputfield
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
 
   useEffect(() => {
-    console.log("hit")
     resetPublicKey()
   },[open, setOpen])
 
