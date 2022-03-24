@@ -9,10 +9,13 @@ import useGembankStore from "../stores/useGembankStore";
 import { WhiteListProps } from "../interfaces";
 import { useInputState } from "../utils/hooks/hooks";
 import { ToastContainer, toast } from "react-toastify";
+import { formatPublickey } from "../utils/helpers";
+import { useCopyToClipboard } from "usehooks-ts";
 import InputField from "./InputField";
 interface SlideOverProps {
 	open: boolean;
 	bankPk: string;
+	bankLetter: string;
 	transmuterWrapper: TransmuterWrapper;
 	isTransmuterOwner: boolean;
 	toggleState: () => void;
@@ -21,19 +24,7 @@ interface SlideOverProps {
 	addRarities: () => void;
 }
 
-const parseWhitelistType = (numType: number) => {
-	switch (numType) {
-		case 1:
-			return "Creator";
-		case 2:
-			return "Mint";
-		case 3:
-			return "Mint + Whitelist";
-		default:
-			return "unknown";
-	}
-};
-
+import { parseWhitelistType } from "../utils/helpers";
 interface RadioButtonProps {
 	whitelistType: WhitelistType;
 	setWhitelistType: (e) => void;
@@ -77,13 +68,23 @@ export function RadioButtons({ whitelistType, setWhitelistType }: RadioButtonPro
 	);
 }
 
-export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist, removeFromWhitelist, addRarities, transmuterWrapper, isTransmuterOwner }: SlideOverProps) {
+export default function BankSidebar({
+	open,
+	toggleState,
+	bankPk,
+	addToWhitelist,
+	removeFromWhitelist,
+	addRarities,
+	transmuterWrapper,
+	isTransmuterOwner,
+	bankLetter,
+}: SlideOverProps) {
 	const gemBankClient = useGembankStore((s) => s.gemBankClient);
 	const [whiteList, setWhiteList] = useState<WhiteListProps[]>([]);
 	const [whitelistType, setWhitelistType] = useState<WhitelistType>(WhitelistType.Creator);
-	//Inputfield
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
-
+	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
+	const [showItem, setShowItem] = useState(false);
 	useEffect(() => {
 		if (gemBankClient !== null && bankPk !== undefined && bankPk !== "") {
 			main();
@@ -114,7 +115,6 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 	async function addToWhiteList() {
 		const { tx } = await transmuterWrapper.addToBankWhitelist(new PublicKey(bankPk), new PublicKey(publicKey), whitelistType);
 		const { response } = await tx.confirm();
-		console.log(response);
 		resetPublicKey();
 		if (response) {
 			await main();
@@ -140,10 +140,51 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 								leaveTo="translate-x-full"
 							>
 								<div className="w-screen max-w-2xl">
-									<div className={`${isTransmuterOwner ? "h-2/4" : "h-1/5"} flex flex-col py-6 bg-white shadow-xl justify-between`}>
+									<div className={`${isTransmuterOwner ? "h-2/4" : "h-1/5"} flex flex-col py-6 bg-white shadow-xl justify-evenly`}>
 										<div className="px-4 sm:px-6">
 											<div className="flex items-start justify-between">
-												<Dialog.Title className="text-lg font-medium text-gray-900">Bank {bankPk}</Dialog.Title>
+												<Dialog.Title className="text-lg font-medium text-gray-900">
+									
+													<dt className="text-sm font-medium text-gray-500 truncate ">Bank {bankLetter}</dt>
+													<Transition
+														show={showItem}
+														enter="transform ease-out duration-500 transition origin-bottom"
+														enterFrom="scale-95 translate-y-0.5 opacity-0"
+														enterTo="scale-100 translate-y-0 opacity-100"
+														leave="transition ease-in duration-100"
+														leaveFrom="opacity-100"
+														leaveTo="opacity-0"
+													>
+														<span className="absolute inset-x-0 bottom-full mb-2.5 flex justify-center">
+											
+
+															<span className="bg-gray-900 text-white rounded-md text-[0.625rem] leading-4 tracking-wide font-semibold uppercase py-1 px-3 filter drop-shadow-md">
+																<svg aria-hidden="true" width="16" height="6" viewBox="0 0 16 6" className="text-gray-900 absolute top-full left-1/2 -mt-px -ml-2 ">
+																	<path
+																		fill-rule="evenodd"
+																		clip-rule="evenodd"
+																		d="M15 0H1V1.00366V1.00366V1.00371H1.01672C2.72058 1.0147 4.24225 2.74704 5.42685 4.72928C6.42941 6.40691 9.57154 6.4069 10.5741 4.72926C11.7587 2.74703 13.2803 1.0147 14.9841 1.00371H15V0Z"
+																		fill="currentColor"
+																	></path>
+																</svg>
+																Copied!
+															</span>
+													
+														</span>
+														</Transition>
+													<dd
+														className="text-2xl font-semibold text-gray-900 uppercase hover:opacity-75 transition-all duration-150 ease-in cursor-pointer"
+														onClick={() => {
+															setShowItem(true);
+															copyToClipboard(bankPk);
+															setTimeout(() => {
+																setShowItem(false);
+															}, 500);
+														}}
+													>
+														{formatPublickey(bankPk)}
+													</dd>
+												</Dialog.Title>
 												<div className="ml-3 h-7 flex items-center ">
 													<button
 														type="button"
@@ -159,6 +200,7 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 												</div>
 											</div>
 										</div>
+
 										<div>
 											<div className=" relative flex-1 px-4 sm:px-6 overflow-hidden">
 												{/* FORM */}
@@ -181,7 +223,12 @@ export default function BankSidebar({ open, toggleState, bankPk, addToWhitelist,
 																	{
 																		pending: `Adding ${publicKey}`,
 																		success: `Successfully added ${publicKey}`,
-																		error: "Something went wrong 😕",
+																		error: {
+																			render({ data }) {
+																				//@ts-expect-error
+																				return data.message;
+																			},
+																		},
 																	},
 																	{
 																		position: "bottom-right",

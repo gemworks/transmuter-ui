@@ -4,35 +4,31 @@ import Link from "next/link";
 
 // Wallet
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-
+import { ToastContainer, toast } from "react-toastify";
 // Components
-import { RequestAirdrop } from "../../components/RequestAirdrop";
-import pkg from "../../../package.json";
-import Slideover from "../../components/BankSidebar";
-import TransferOwnership from "../../components/TransferOwnership";
+import TransferTransmuterOwnership from "../../components/TransferTransmuterOwnership";
 import CreateMutationSidebar from "../../components/CreateMutationSidebar";
 import ManageMutation from "../../components/ManageMutation";
 // Store
-import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 import useGembankStore from "../../stores/useGembankStore";
 
-import { prepareMutation } from "../../utils/mutations";
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
-import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid } from "@heroicons/react/solid";
-// import { SolanaProvider } from "@saberhq/solana-contrib";
+import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid, TrashIcon, LibraryIcon } from "@heroicons/react/outline";
+
 import { useRouter } from "next/router";
-import { SolanaProvider } from "@saberhq/solana-contrib";
-import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
-import { BN } from "@project-serum/anchor";
-import { toBN } from "@gemworks/gem-farm-ts";
+
+import { TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
+
 import BankSidebar from "../../components/BankSidebar";
 import { formatPublickey, parseString } from "../../utils/helpers";
-
+import { useCopyToClipboard } from "usehooks-ts";
+import { Transition } from "@headlessui/react";
+import { BeakerIcon } from "@heroicons/react/outline";
 //existing transmuters
 interface BankCardProps {
-	bank: string;
+	bank: { publicKey: string; letter: string };
 	setBank: () => void;
 }
 export function BankCard({ bank, setBank }: BankCardProps) {
@@ -40,9 +36,16 @@ export function BankCard({ bank, setBank }: BankCardProps) {
 		<li className="relative">
 			<div
 				onClick={setBank}
-				className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden"
+				className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-white shadow-sm   hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden"
 			>
-				<h2 className="pl-4 pt-4 text-lg font-semibold">Bank {formatPublickey(bank)}</h2>
+				<div className="p-4">
+					<div className="flex justify-center">
+						<LibraryIcon className="w-8 h-8 text-gray-400" aria-hidden="true" />
+					</div>
+					<h3 className="text-sm my-0.5 font-medium text-gray-500 truncate">Bank {bank.letter}</h3>
+					<h2 className=" font-semibold text-gray-900">{formatPublickey(bank.publicKey)}</h2>
+				</div>
+
 				<button type="button" className="absolute inset-0 focus:outline-none">
 					<span className="sr-only">View details for Bank</span>
 				</button>
@@ -56,14 +59,6 @@ export function BankCard({ bank, setBank }: BankCardProps) {
 export function CreateTransmuterCard() {
 	return (
 		<Link href={`/transmuter/create`}>
-			{/* <div className="text-center group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-indigo-500 text-indigo-50 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
-
-            <h2 className="pl-4 pt-4 text-md break-words font-semibold">Create New Transmuter </h2>
-      
-            <button type="button" className="absolute inset-0 focus:outline-none">
-              <span className="sr-only">View details for </span>
-            </button>
-          </div> */}
 			<button
 				type="button"
 				className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -86,7 +81,7 @@ export const TransmuterView: FC = ({}) => {
 	const { initGemBankClient } = useGembankStore();
 
 	const [transmuterWrapper, setTransmuterWrapper] = useState<TransmuterWrapper>(null);
-	const [banks, setBanks] = useState<string[]>([]);
+	const [banks, setBanks] = useState<{ publicKey: string; letter: string }[]>([]);
 	const [bank, setBank] = useState<string>();
 
 	const [openBank, setOpenBank] = useState(false);
@@ -100,7 +95,8 @@ export const TransmuterView: FC = ({}) => {
 	const [selectedMutationPk, setSelectedMutationPk] = useState<PublicKey>();
 
 	const [mutations, setMutations] = useState<any[]>([]);
-
+	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
+	const [showItem, setShowItem] = useState(false);
 	function toggleMutationManager(): void {
 		if (openMutationManager) {
 			setOpenMutationManager(false);
@@ -152,30 +148,32 @@ export const TransmuterView: FC = ({}) => {
 		const transmuterPk = new PublicKey(transmuterPublicKey);
 		const data = await transmuterClient.programs.Transmuter.account.transmuter.fetch(transmuterPk);
 		const { bankA, bankB, bankC, owner } = data;
-	
 
 		setTransmuterOwner(owner);
 		//WRAPPER
 		const transmuterWrapper_ = new TransmuterWrapper(transmuterClient, transmuterPk, bankA, bankB, bankC, data);
-
 		setTransmuterWrapper(transmuterWrapper_);
 
-		setBanks([bankA.toBase58(), bankB.toBase58(), bankC.toBase58()]);
+		setBanks([
+			{ publicKey: bankA.toBase58(), letter: "A" },
+			{ publicKey: bankB.toBase58(), letter: "B" },
+			{ publicKey: bankC.toBase58(), letter: "C" },
+		]);
 	}
 	async function getMutationsByTransmuter(transmuterClient: TransmuterSDK) {
 		const accounts = await transmuterClient.programs.Transmuter.account.mutation.all();
 		const mutations = accounts.filter((account) => account.account.transmuter.toBase58() == transmuterPublicKey);
-		// let {name} = mutations[2].account;
-		// const str = String.fromCharCode.apply(null, new Uint8Array(name));
+
 		setMutations(mutations);
-		console.log("mutations", mutations);
 	}
 
 	return (
 		<div className="py-10">
+			<ToastContainer theme="colored" />
 			<BankSidebar
 				open={openBank}
 				bankPk={bank}
+				bankLetter={"A"}
 				isTransmuterOwner={transmuterOwner?.toBase58() === wallet.publicKey?.toBase58()}
 				transmuterWrapper={transmuterWrapper}
 				toggleState={() => {
@@ -197,49 +195,109 @@ export const TransmuterView: FC = ({}) => {
 				transmuterWrapper={transmuterWrapper}
 				toggleState={() => toggleMutation()}
 			/>
-			<TransferOwnership
+			<TransferTransmuterOwnership
 				transmuterWrapper={transmuterWrapper}
 				isOpen={modalIsOpen}
 				toggleModal={() => {
 					toggleModalOpen();
 				}}
 			/>
-			<ManageMutation 
-			
-			account={selectedMutation}
-			publicKey={selectedMutationPk}
-			transmuterWrapper={transmuterWrapper} open={openMutationManager} toggleState={() => toggleMutationManager()} />
+			<ManageMutation
+				mutationData={selectedMutation}
+				mutationPublicKey={selectedMutationPk}
+				transmuterWrapper={transmuterWrapper}
+				open={openMutationManager}
+				getMutationsByTransmuter={() => {
+					toast.promise(
+						getMutationsByTransmuter(transmuterClient),
+						{
+							pending: "Loading",
+							success: "Success!🎉",
+							error: {
+								render({ data }) {
+									//@ts-expect-error
+									return data.message;
+								},
+							},
+						},
+						{
+							position: "bottom-right",
+						}
+					);
+				}}
+				toggleState={() => toggleMutationManager()}
+			/>
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="space-y-2">
+					<div className="space-y-1">
 						<span
-							className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium ${
+							className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
 								transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
 							}`}
 						>
-							{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() ? "You're Transmuter Owner" : "Not the Transmuter Owner"}
+							{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() ? "You're the Owner" : "Not the Owner"}
 						</span>
-						<h1 className="text-2xl font-bold leading-tight text-gray-900">Transmuter {transmuterPublicKey}</h1>
+
+						<div>
+							<h2 className="text-lg font-medium text-gray-500 truncate ">Transmuter</h2>
+							<Transition
+								show={showItem}
+								enter="transform ease-out duration-500 transition origin-bottom"
+								enterFrom="scale-95 translate-y-0.5 opacity-0"
+								enterTo="scale-100 translate-y-0 opacity-100"
+								leave="transition ease-in duration-100"
+								leaveFrom="opacity-100"
+								leaveTo="opacity-0"
+							>
+								<span className="absolute inset-x-0 bottom-full mb-2 flex">
+									<span className="bg-gray-900 text-white rounded-md text-[0.625rem] leading-4 tracking-wide font-semibold uppercase py-1 px-3 filter drop-shadow-md">
+										<svg aria-hidden="true" width="16" height="6" viewBox="0 0 16 6" className="text-gray-900 absolute top-full left-1/2 -mt-px -ml-2 ">
+											<path
+												fill-rule="evenodd"
+												clip-rule="evenodd"
+												d="M15 0H1V1.00366V1.00366V1.00371H1.01672C2.72058 1.0147 4.24225 2.74704 5.42685 4.72928C6.42941 6.40691 9.57154 6.4069 10.5741 4.72926C11.7587 2.74703 13.2803 1.0147 14.9841 1.00371H15V0Z"
+												fill="currentColor"
+											></path>
+										</svg>
+										Copied!
+									</span>
+								</span>
+							</Transition>
+							<h1
+								className="text-2xl font-semibold text-gray-900 uppercase hover:opacity-75 transition-all duration-150 ease-in cursor-pointer w-64"
+								onClick={() => {
+									setShowItem(true);
+									copyToClipboard(transmuterPublicKey);
+									setTimeout(() => {
+										setShowItem(false);
+									}, 500);
+								}}
+							>
+								{formatPublickey(transmuterPublicKey)}
+							</h1>
+						</div>
 					</div>
 
 					{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() && (
-						<button
-							onClick={() => {
-								toggleModalOpen();
-							}}
-							type="button"
-							className="leading-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-500 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-150 ease-in"
-						>
-							<UsersIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
-							Transfer Ownership
-						</button>
+						<div className="flex space-x-4 my-4">
+							<button
+								onClick={() => {
+									toggleModalOpen();
+								}}
+								type="button"
+								className="leading-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-500 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-150 ease-in"
+							>
+								<UsersIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
+								Transfer Ownership
+							</button>
+						</div>
 					)}
 				</div>
 			</header>
 			<main>
 				<div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 					{/* Replace with your content */}
-					<h2 className="text-xl font-bold leading-tight text-gray-700">Banks</h2>
+					<h2 className="text-xl font-bold leading-tight text-gray-700 mb-4">Banks</h2>
 
 					<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
 						{banks.map((bank, index) => (
@@ -247,50 +305,67 @@ export const TransmuterView: FC = ({}) => {
 								bank={bank}
 								key={index}
 								setBank={() => {
-									setBank(bank), toggleBank();
+									setBank(bank.publicKey), toggleBank();
 								}}
 							/>
 						))}
 					</ul>
 
-					<h2 className="text-xl font-bold leading-tight text-gray-700">Mutations</h2>
-					{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() && (
+					<h2 className="text-xl font-bold leading-tight text-gray-700 my-4">Mutations</h2>
+					{transmuterOwner?.toBase58() === wallet.publicKey?.toBase58() && mutations.length > 0 && (
 						<button
 							onClick={() => {
 								toggleMutation();
 							}}
 							type="button"
-							className="inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 ease-in"
+							className="leading-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-all duration-150 ease-in mb-4"
 						>
-							<PlusSmIconSolid className="h-5 w-5" aria-hidden="true" />
+							<PlusSmIconSolid className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
+							Create Mutation
 						</button>
 					)}
+					{mutations.length > 0 ? (
+						<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
+							{mutations.map((mutation) => (
+								<li
+									onClick={() => {
+										setSelectedMutation(mutation.account);
+										setSelectedMutationPk(mutation.publicKey);
+										if (selectedMutation !== null) {
+											toggleMutationManager();
+										}
+									}}
+									className="relative"
+								>
+									<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-white shadow-sm   hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
+										<div className="p-4">
+											<div className="flex justify-center">
+												<BeakerIcon className="w-8 h-8 text-gray-400" aria-hidden="true" />
+											</div>
+											<h3 className="text-sm my-0.5 font-medium text-gray-500 truncate">{formatPublickey(mutation.publicKey.toBase58())}</h3>
 
-					<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
-						{mutations.map((mutation) => (
-							<li
-								onClick={() => {
-									setSelectedMutation(mutation.account);
-									setSelectedMutationPk(mutation.publicKey);
-									if (selectedMutation !== null) {
-										toggleMutationManager();
-									}
-								}}
-								className="relative"
-							>
-								<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
-									<div className="pl-4">
-										<h2 className=" pt-4 text-base font-semibold">"{parseString(mutation.account.name)}" </h2>
-										<h3>{formatPublickey(mutation.publicKey.toBase58())}</h3>
+											<h2 className=" font-semibold text-gray-900 uppercase">{parseString(mutation.account.name)}</h2>
+										</div>
+
+										<button type="button" className="absolute inset-0 focus:outline-none">
+											<span className="sr-only">View details for Mutation</span>
+										</button>
 									</div>
-
-									<button type="button" className="absolute inset-0 focus:outline-none">
-										<span className="sr-only">View details for Mutation</span>
-									</button>
-								</div>
-							</li>
-						))}
-					</ul>
+								</li>
+							))}
+						</ul>
+					) : (
+						<button
+							type="button"
+							onClick={() => {
+								toggleMutation();
+							}}
+							className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						>
+							<BeakerIcon className="mx-auto h-12 w-12 text-gray-400" aria-hidden="true" />
+							<span className="mt-2 block text-sm font-medium text-gray-900">Create a new Mutation</span>
+						</button>
+					)}
 				</div>
 			</main>
 		</div>

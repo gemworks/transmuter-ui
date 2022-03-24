@@ -1,29 +1,80 @@
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { XIcon } from "@heroicons/react/outline";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { TransmuterWrapper } from "@gemworks/transmuter-ts";
-import { RarityConfig, WhitelistType } from "@gemworks/gem-farm-ts";
-import { Icon } from "./Icon";
-import useGembankStore from "../stores/useGembankStore";
-import { WhiteListProps } from "../interfaces";
-import { useInputState } from "../utils/hooks/hooks";
+import { MutationWrapper, TransmuterWrapper, MutationData } from "@gemworks/transmuter-ts";
 import { ToastContainer, toast } from "react-toastify";
-import InputField from "./InputField";
 import { parseString } from "../utils/helpers";
+import useTransmuterStore from "../stores/useTransmuterStore";
+import Link from "next/link";
+import { XIcon, RefreshIcon, ClockIcon, BeakerIcon, TicketIcon, ArrowRightIcon } from "@heroicons/react/outline";
+import moment from "moment";
+import DestroyMutation from "../components/DestroyMutation";
 interface MutationProps {
-	account: any;
-	publicKey?: PublicKey;
+	mutationData: MutationData;
+	mutationPublicKey?: PublicKey;
 	transmuterWrapper: TransmuterWrapper;
+	getMutationsByTransmuter: () => void;
 	open: boolean;
 	toggleState: () => void;
 }
 
-export default function ManageMutation({ account, publicKey, transmuterWrapper, open, toggleState }: MutationProps) {
+export default function ManageMutation({ mutationData, mutationPublicKey, transmuterWrapper, open, toggleState, getMutationsByTransmuter }: MutationProps) {
+	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
+	const [receipts, setReceipts] = useState([]);
+	const [mutationWrapper, setMutationWrapper] = useState<MutationWrapper>(null);
 	useEffect(() => {
-		console.log("account", account);
-	}, [account]);
+
+		if (mutationData) {
+			setMutationWrapper(new MutationWrapper(transmuterClient, mutationPublicKey, mutationData?.transmuter, mutationData));
+		}
+	
+		getReceipts();
+	}, [mutationData]);
+
+	async function getReceipts() {
+		const receipts = await transmuterClient?.findAllReceipts(undefined, mutationPublicKey);
+
+		if (receipts) {
+			setReceipts(receipts);
+		}
+	}
+
+	function getExecutionState(rawState: any): { color: string; state: string } {
+		if (rawState.complete) {
+			return {
+				color: "green",
+				state: "complete",
+			};
+		}
+		if (rawState.pending) {
+			return {
+				color: "yellow",
+				state: "pending",
+			};
+		}
+		if (rawState.notStarted) {
+			return {
+				color: "gray",
+				state: "not started",
+			};
+		}
+
+		return {
+			color: "gray",
+			state: "-",
+		};
+	}
+
+	async function destroyMutation() {
+		const {tx} = await mutationWrapper.destroy(mutationData?.transmuter);
+		const { signature } = await tx.confirm();
+		if (signature) {
+			toggleState();
+			getMutationsByTransmuter();
+		}
+	}
+
 	return (
 		<>
 			<ToastContainer theme="colored" />
@@ -44,11 +95,14 @@ export default function ManageMutation({ account, publicKey, transmuterWrapper, 
 								leaveTo="translate-x-full"
 							>
 								<div className="w-screen max-w-2xl">
-									<div className={`h-1/5 flex flex-col py-6 bg-white shadow-xl justify-between`}>
+									<div className={`h-1/3 py-6 bg-white shadow-xl`}>
 										<div className="px-4 sm:px-6">
 											<div className="flex items-start justify-between">
-												<Dialog.Title className="text-lg font-medium text-gray-900">Mutation {parseString(account?.name)}</Dialog.Title>
-												<div className="ml-3 h-7 flex items-center ">
+												<Dialog.Title>
+													<dt className="text-sm font-medium text-gray-500 truncate">Mutation</dt>
+													<dd className="mt-1 text-2xl font-semibold text-gray-900 uppercase">{parseString(mutationData?.name)}</dd>
+												</Dialog.Title>
+												<div className="ml-3 h-7 flex flex-col space-y-3 items-center ">
 													<button
 														type="button"
 														className="bg-white rounded-md  text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -59,21 +113,128 @@ export default function ManageMutation({ account, publicKey, transmuterWrapper, 
 														<span className="sr-only">Close panel</span>
 														<XIcon className="h-6 w-6" aria-hidden="true" />
 													</button>
+													<DestroyMutation
+														mutationName={parseString(mutationData?.name)}
+														destroyMutation={() => {
+															toast.promise(
+																destroyMutation,
+																{
+																	pending: "Loading",
+																	success: "Success!🎉",
+																	error: {
+																		render({ data }) {
+																			//@ts-expect-error
+																			return data.message;
+																		},
+																	},
+																},
+																{
+																	position: "bottom-right",
+																}
+															);
+														}}
+													/>
 												</div>
 											</div>
 										</div>
-										<div>{/* /End replace */}</div>
+										<div className="px-4 sm:px-6">
+											<Link href={`/mutation/${mutationPublicKey?.toBase58()}`}>
+												<div className="text-indigo-500 hover:text-indigo-300 duration-150 ease-in transition-all font-medium pt-2 pb-4 cursor-pointer flex space-x-2 items-center text-sm w-32">
+													<div>go to Mutation</div>
+													<ArrowRightIcon className="w-4 h-4" aria-hidden="true" />
+												</div>
+											</Link>
+
+											<div className="flex flex-col sm:flex-row items-center text-sm flex-wrap space-y-1 pt-6">
+												<div className="flex items-center pr-4">
+													<BeakerIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+													<span className="text-gray-800 font-medium pl-1.5">
+														{mutationData?.totalUses.toNumber() - mutationData?.remainingUses.toNumber()}/{mutationData?.totalUses.toNumber()}
+													</span>
+													<span className="text-gray-400 pl-1">times used</span>
+												</div>
+
+												<div className="flex items-center pr-4">
+													<ClockIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+													<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.mutationDurationSec.toNumber()}s</span>
+													<span className="text-gray-400 pl-1">to finish</span>
+												</div>
+												<div className="flex items-center pr-4">
+													<RefreshIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+													<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.reversible ? "reversable" : "irreversible"}</span>
+												</div>
+												<div className="flex items-center pr-4">
+													<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
+													<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.price?.priceLamports.toNumber() / LAMPORTS_PER_SOL} SOL </span>
+													<span className="text-gray-400 pl-1">to execute</span>
+												</div>
+												{mutationData?.config.reversible && (
+													<div className="flex items-center pr-4">
+														<img src="/images/solana.png" className="w-4 h-4" alt="solana_logo" />
+														<span className="text-gray-800 font-medium pl-1.5">{mutationData?.config?.price?.reversalPriceLamports.toNumber() / LAMPORTS_PER_SOL} SOL </span>
+														<span className="text-gray-400 pl-1">to reverse</span>
+													</div>
+												)}
+											</div>
+										</div>
 									</div>
 
-									<div className={`h-4/5 flex flex-col bg-white shadow-xl px-4 sm:px-6 space-y-4`}>
-										{account?.remainingUses?.toNumber() > 0 ? (
-											<h3 className="font-medium text-gray-900 ">mutations available: {account?.remainingUses?.toNumber()}</h3>
-										) : (
-											<h3 className="font-medium text-gray-900">mutation exhausted - no more usages left</h3>
-										)}
+									<div className="h-2/3 flex flex-col bg-white shadow-xl px-4 sm:px-6">
+										<div>
+											<label className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2">Execution Receipts</label>
+											<p className="text-gray-500 text-sm mt-1">View all mutation executions from users.</p>
 
-										<h1 className="text-gray-900">price per mutation: {account?.config.price?.priceLamports.toNumber() / LAMPORTS_PER_SOL} </h1>
-										{account.config.reversible && <h1 className="text-gray-900">price per reversal: {account?.config.price?.reversalPriceLamports.toNumber() / LAMPORTS_PER_SOL} </h1>}
+											{receipts.length > 0 && (
+												<p className="text-gray-500 text-sm mt-4 pb-1 flex items-center">
+													<TicketIcon aria-hidden="true" className="w-5 h-5 mr-1 text-gray-400" />
+													<span className="text-gray-800 font-medium mr-1">{receipts.length}</span> Receipt{receipts.length !== 1 && "s"} found
+												</p>
+											)}
+										</div>
+
+										{receipts.length > 0 ? (
+											<div className="flex-1 flex overflow-hidden">
+												{" "}
+												<div className="mt-2 relative px-4 sm:px-6  flex-1 overflow-y-scroll">
+													<div className="flex-1">
+														{receipts.map((item, index) => (
+															<ul key={index} className="border-t border-gray-200  w-full flex py-3 items-center hover:opacity-60 duration-150 ease-in transition-all">
+																{" "}
+																<TicketIcon aria-hidden="true" className="w-7 h-7 mr-3 text-gray-400" />
+																<div>
+																	<div className="flex items-center">
+																		<span
+																			className={`text-xs inline-flex items-center px-2 py-0.5 rounded font-medium text-${getExecutionState(item.account.state).color}-500 bg-${
+																				getExecutionState(item.account.state).color
+																			}-100 `}
+																		>
+																			{getExecutionState(item.account.state).state}
+																		</span>
+																		{!item.account.state?.notStarted && (
+																			<span className="text-gray-500 text-xs pl-1.5 font-medium flex items-center ">
+																				<ClockIcon aria-hidden="true" className="w-5 h-5 pr-1" />
+																				<div>{moment.unix(item.account.mutationCompleteTs.toNumber()).format("DD MM YYYY HH:mm")}</div>
+																			</span>
+																		)}
+																	</div>
+
+																	<p className="text-gray-400 font-medium text-xs pt-2">Taker</p>
+																	<p className="text-gray-700 font-medium text-sm">{item.account.taker.toBase58()}</p>
+																</div>
+															</ul>
+														))}
+													</div>
+												</div>{" "}
+											</div>
+										) : (
+											<div className="flex flex-col h-full justify-center">
+												{" "}
+												<div className="text-center">
+													<TicketIcon aria-hidden="true" className="w-10 h-10 mx-auto text-gray-400" />
+													<h3 className="mt-2 text-sm font-medium text-gray-900">No receipts found</h3>
+												</div>{" "}
+											</div>
+										)}
 									</div>
 								</div>
 							</Transition.Child>

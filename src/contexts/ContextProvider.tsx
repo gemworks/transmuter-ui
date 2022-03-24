@@ -21,7 +21,7 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
     // TODO: WALLET ADAPTER IN GENERAL NEEDS WORK, CONNECTING DIFFERENT WALLETS, NETWORK, REFRESH, EVENTS
 
     {/* TODO: UPDATE CLUSTER PER NETWORK SETTINGS, ADD LOCALHOST + CUSTOMNET | ADAPTER REWORK */ }
-    const network = WalletAdapterNetwork.Testnet;
+    const network = WalletAdapterNetwork.Devnet;
     const endpoint = useMemo(() => clusterApiUrl(network), [network]);
     //@TODO add genesysgo rpc endpoint for mainnet https://ssc-dao.genesysgo.net/
 

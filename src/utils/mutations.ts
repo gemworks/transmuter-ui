@@ -22,12 +22,13 @@ export const prepareMutation = async ({
 	uses = toBN(1),
 	mutationInitError = undefined,
 	reversalPriceLamports = toBN(LAMPORTS_PER_SOL),
+	executionPriceLamports = toBN(LAMPORTS_PER_SOL),
 	makerMintA,
 	makerMintB,
 	makerMintC,
 	makerTokenAmount = toBN(0),
 	takerTokenAmount = toBN(0),
-
+	takerTokenUnits = RequiredUnits.Gems,
 }: {
 	sdk: TransmuterSDK;
 	transmuter: TransmuterWrapper;
@@ -49,19 +50,15 @@ export const prepareMutation = async ({
 	makerMintC?: PublicKey;
 	makerTokenAmount: BN;
 	takerTokenAmount: BN;
-
+	takerTokenUnits: any;
+	executionPriceLamports?: BN;
 }) => {
-
-
-	console.log("total_funing", {makerTokenAmount, makerTokenAmountPerUse, uses})
-
-
-
+	console.log("check", makerTokenBAmountPerUse === true)
 	const config: MutationConfig = {
 		takerTokenA: {
 			gemBank: transmuter.bankA,
 			requiredAmount: takerTokenAmount,
-			requiredUnits: RequiredUnits.RarityPoints,
+			requiredUnits: takerTokenUnits,
 			vaultAction,
 		},
 		takerTokenB,
@@ -71,14 +68,14 @@ export const prepareMutation = async ({
 			totalFunding: makerTokenAmount,
 			amountPerUse: makerTokenAmountPerUse,
 		},
-		makerTokenB: makerTokenBAmountPerUse
+		makerTokenB: makerTokenBAmountPerUse 
 			? {
 					mint: makerMintB,
 					totalFunding: makerTokenBAmountPerUse.mul(uses),
 					amountPerUse: makerTokenBAmountPerUse,
 			  }
 			: null,
-		makerTokenC: makerTokenCAmountPerUse
+		makerTokenC: makerTokenCAmountPerUse 
 			? {
 					mint: makerMintC,
 					totalFunding: makerTokenCAmountPerUse.mul(uses),
@@ -86,13 +83,13 @@ export const prepareMutation = async ({
 			  }
 			: null,
 		price: {
-			priceLamports: toBN(LAMPORTS_PER_SOL),
+			priceLamports: executionPriceLamports,
 			reversalPriceLamports,
 		},
 		mutationDurationSec,
 		reversible,
 	};
-	console.log("config",config);
+	console.log("config", config);
 
 	const { mutationWrapper, tx } = await sdk.initMutation(config, transmuter.key, uses, owner, mutationName);
 	console.log("mutation", { mutationWrapper, tx });

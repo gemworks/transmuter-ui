@@ -1,7 +1,6 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XIcon } from "@heroicons/react/outline";
-import { LinkIcon, PlusSmIcon, QuestionMarkCircleIcon } from "@heroicons/react/solid";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Switch } from "@headlessui/react";
 import { useInputState } from "../utils/hooks/hooks";
@@ -11,7 +10,7 @@ import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { toBN } from "@gemworks/gem-farm-ts";
 import { prepareMutation } from "../utils/mutations";
 import { ToastContainer, toast } from "react-toastify";
-import { MutationConfig, RequiredUnits, VaultAction, TakerTokenConfig, TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
+import { RequiredUnits, VaultAction, TransmuterWrapper } from "@gemworks/transmuter-ts";
 
 function classNames(...classes) {
 	return classes.filter(Boolean).join(" ");
@@ -68,7 +67,7 @@ export function ToggleSwitch({ enabled, toggleSwitch }: ToggleSwitchProps) {
 interface CreateMutationSidebarProps {
 	open: boolean;
 	toggleState: () => void;
-	banks: string[];
+	banks: {publicKey: string; letter: string}[];
 	transmuterWrapper: TransmuterWrapper;
 	setBank: (bank: string) => void;
 	openBank: () => void;
@@ -87,13 +86,13 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	const [reversePrice, handleReversePriceChange, setReversePrice, resetReversePrice] = useInputState(0);
 
 	//maker vaults
-	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("DoPnWBVs8eHcCBPWnjeqhUATAekyAnmZXP8Sjn1Ma297");
+	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("8grhrMATijZHe72Hhyk6aMUM6tQLBahcmq1SR59jBwSw");
 	const [makerAAmountPerUse, handleMakerAAmountPerUseChange, setMakerAAmountPerUse, resetMakerAAmountPerUse] = useInputState(0);
 	const [makerATotalFunding, handleMakerATotalFundingChange, setMakerATotalFunding, resetMakerATotalFunding] = useInputState(0);
-	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("4LcBQBVK9Y2DMc2n9hbrY16hLzzpqucDCe3p4UFqLCku");
+	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("BYGKyq8cmXzvho3GNAsoYVPh5BuAsEVvbo1HYSWyW6E7");
 	const [makerBAmountPerUse, handleMakerBAmountPerUseChange, setMakerBAmountPerUse, resetMakerBAmountPerUse] = useInputState(0);
 	const [makerBTotalFunding, handleMakerBTotalFundingChange, setMakerBTotalFunding, resetMakerBTotalFunding] = useInputState(0);
-	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("DgUQD9WkJAfW1WDfHNKo6RiT58FZiosCKPgRfA9Xx59Z");
+	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("3e1QSgpn9L2eNo41xShD7z3jFMTHA6jkv85CmRSpHJmz");
 	const [makerCAmountPerUse, handleMakerCAmountPerUseChange, setMakerCAmountPerUse, resetMakerCAmountPerUse] = useInputState(0);
 	const [makerCTotalFunding, handleMakerCTotalFundingChange, setMakerCTotalFunding, resetMakerCTotalFunding] = useInputState(0);
 	//taker vaults
@@ -132,54 +131,39 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	}
 
 	async function createMutation() {
-		async function prepareMutation_() {
-			try {
-				prepareMutation({
-					sdk: transmuterClient,
-					transmuter: transmuterWrapper,
-					mutationName: name,
-					owner: wallet.publicKey,
-					vaultAction: parseStringToVaultAction(takerAEscrowAction),
-					mutationDurationSec: toBN(parseFloat(mutationDuration)),
-					reversible: enabled,
-					uses: toBN(parseFloat(usages)),
-					reversalPriceLamports: toBN(parseFloat(reversePrice) * LAMPORTS_PER_SOL),
-					makerMintA: new PublicKey(makerATokenAddress),
-					makerMintB: new PublicKey(makerBTokenAddress),
-					makerMintC: new PublicKey(makerCTokenAddress),
-					takerTokenB: {
-						gemBank: transmuterWrapper.bankB,
-						requiredAmount: toBN(parseFloat(takerBAmountPerUse)),
-						requiredUnits: RequiredUnits.RarityPoints,
-						vaultAction: parseStringToVaultAction(takerBEscrowAction),
-					},
-					takerTokenC: {
-						gemBank: transmuterWrapper.bankC,
-						requiredAmount: toBN(parseFloat(takerCAmountPerUse)),
-						requiredUnits: RequiredUnits.RarityPoints,
-						vaultAction: parseStringToVaultAction(takerCEscrowAction),
-					},
-					makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
-					takerTokenAmount: toBN(parseFloat(takerAAmountPerUse)),
-					makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
-					makerTokenBAmountPerUse: toBN(parseFloat(makerBAmountPerUse)),
-					makerTokenCAmountPerUse: toBN(parseFloat(makerCAmountPerUse)),
-				});
-			} catch (err) {
-				console.log(err);
-			}
-		}
-		toast.promise(
-			prepareMutation_(),
-			{
-				pending: `Creating new Mutation`,
-				success: `Successfully created mutation`,
-				error: "something went wrong",
+		await prepareMutation({
+			sdk: transmuterClient,
+			executionPriceLamports:toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
+			transmuter: transmuterWrapper,
+			mutationName: name,
+			owner: wallet.publicKey,
+			vaultAction: parseStringToVaultAction(takerAEscrowAction),
+			mutationDurationSec: toBN(parseFloat(mutationDuration)),
+			reversible: enabled,
+			uses: toBN(parseFloat(usages)),
+			reversalPriceLamports: toBN(parseFloat(reversePrice) * LAMPORTS_PER_SOL),
+			makerMintA: new PublicKey(makerATokenAddress),
+			makerMintB: makerBAmountPerUse && new PublicKey(makerBTokenAddress),
+			makerMintC: makerCAmountPerUse && new PublicKey(makerCTokenAddress),
+			takerTokenB: {
+				gemBank: transmuterWrapper.bankB,
+				requiredAmount: toBN(parseFloat(takerBAmountPerUse)),
+				requiredUnits: RequiredUnits.Gems,
+				vaultAction: parseStringToVaultAction(takerBEscrowAction),
 			},
-			{
-				position: "bottom-right",
-			}
-		);
+			takerTokenC: {
+				gemBank: transmuterWrapper.bankC,
+				requiredAmount: toBN(parseFloat(takerCAmountPerUse)),
+				requiredUnits: RequiredUnits.Gems,
+				vaultAction: parseStringToVaultAction(takerCEscrowAction),
+			},
+			makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
+			takerTokenAmount: toBN(parseFloat(takerAAmountPerUse)),
+			makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
+			makerTokenBAmountPerUse: makerBAmountPerUse > 0 && toBN(parseFloat(makerBAmountPerUse)),
+			makerTokenCAmountPerUse: makerCAmountPerUse > 0 && toBN(parseFloat(makerCAmountPerUse)),
+			takerTokenUnits: RequiredUnits.Gems,
+		});
 	}
 
 	return (
@@ -499,11 +483,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														amountPerUse={takerAAmountPerUse}
 														setAmountPerUse={setTakerAAmountPerUse}
 														handleAmountPerUseChange={handleTakerAAmountPerUseChange}
-														name={banks[0]}
+														name={banks[0]?.publicKey}
 														type="Taker"
 														openBank={openBank}
 														setBank={() => {
-															setBank(banks[0]);
+															setBank(banks[0]?.publicKey);
 														}}
 													/>
 													<Vault
@@ -514,11 +498,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														amountPerUse={takerBAmountPerUse}
 														setAmountPerUse={setTakerBAmountPerUse}
 														handleAmountPerUseChange={handleTakerBAmountPerUseChange}
-														name={banks[1]}
+														name={banks[1]?.publicKey}
 														type="Taker"
 														openBank={openBank}
 														setBank={() => {
-															setBank(banks[1]);
+															setBank(banks[1]?.publicKey);
 														}}
 													/>
 													<Vault
@@ -529,11 +513,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														amountPerUse={takerCAmountPerUse}
 														setAmountPerUse={setTakerCAmountPerUse}
 														handleAmountPerUseChange={handleTakerCAmountPerUseChange}
-														name={banks[2]}
+														name={banks[2]?.publicKey}
 														type="Taker"
 														openBank={openBank}
 														setBank={() => {
-															setBank(banks[2]);
+															setBank(banks[2]?.publicKey);
 														}}
 													/>
 												</div>
@@ -550,7 +534,22 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 														</button>
 														<button
 															onClick={() => {
-																createMutation();
+																toast.promise(
+																	createMutation,
+																	{
+																		pending: `Creating new Mutation`,
+																		success: `Successfully created mutation`,
+																		error: {
+																			render({ data }) {
+																				//@ts-expect-error
+																				return data.message;
+																			},
+																		},
+																	},
+																	{
+																		position: "bottom-right",
+																	}
+																);
 															}}
 															className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
 														>

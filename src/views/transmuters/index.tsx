@@ -11,12 +11,13 @@ import pkg from "../../../package.json";
 
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
-import { PlusIcon } from "@heroicons/react/solid";
+import { PlusIcon } from "@heroicons/react/outline";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 import { TransmuterSDK } from "@gemworks/transmuter-ts";
 import { SolanaProvider } from "@saberhq/solana-contrib";
 import { PublicKey } from "@solana/web3.js";
-
+import { formatPublickey } from "../../utils/helpers";
+import { ToastContainer, toast } from "react-toastify";
 //existing transmuters
 interface TransmuterCardProps {
 	items: any[];
@@ -28,7 +29,7 @@ export function TransmuterCard({ items }: TransmuterCardProps) {
 				<li key={index} className="relative">
 					<Link href={`/transmuter/${item?.publicKey.toBase58()}`}>
 						<div className="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-200 text-gray-500 hover:opacity-75 focus-within:ring-2  transiton-all duration-150 ease-in focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden">
-							<h2 className="pl-4 pt-4 text-lg font-semibold">Transmuter {item?.publicKey.toBase58()}</h2>
+							<h2 className="pl-4 pt-4 text-lg font-semibold">Transmuter {formatPublickey(item?.publicKey.toBase58())}</h2>
 							{/* <img src={file.source} alt="" className="object-cover pointer-events-none group-hover:opacity-75" /> */}
 							<button type="button" className="absolute inset-0 focus:outline-none">
 								<span className="sr-only">View details for {item.title}</span>
@@ -90,7 +91,7 @@ export const TransmutersView: FC = ({}) => {
 
 	async function getTransmuters(sdk_: TransmuterSDK) {
 		const accounts = await sdk_.programs.Transmuter.account.transmuter.all();
-
+		console.log("accounts", accounts);
 		const transmuters = accounts.filter((account) => account.account.owner.toBase58() == wallet.publicKey.toBase58());
 		transmuters.forEach((transmuter) => console.log(transmuter.account.owner.toBase58()));
 		setTransmuters(transmuters);
@@ -116,13 +117,29 @@ export const TransmutersView: FC = ({}) => {
 
 	return (
 		<div className="py-10">
+			<ToastContainer />
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900">Transmuters</h1>
 
 					<button
 						onClick={() => {
-							initTransmuter_();
+							toast.promise(
+								initTransmuter_,
+								{
+									pending: "loading",
+									success: "Success!🎉",
+									error: {
+										render({ data }) {
+											//@ts-expect-error
+											return data.message;
+										},
+									},
+								},
+								{
+									position: "bottom-right",
+								}
+							);
 						}}
 						disabled={!wallet.publicKey}
 						type="button"
