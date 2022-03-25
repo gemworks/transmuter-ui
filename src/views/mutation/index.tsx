@@ -12,7 +12,7 @@ import GradientAvatar from "components/GradientAvatar";
 import { RefreshIcon, ClockIcon, BeakerIcon, TrendingUpIcon, TrendingDownIcon, CheckCircleIcon } from "@heroicons/react/outline";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 
-import {  Wallet } from "@saberhq/solana-contrib";
+import { Wallet } from "@saberhq/solana-contrib";
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { useRouter } from "next/router";
@@ -22,7 +22,9 @@ import { parseWhitelistType } from "../../utils/helpers";
 import { findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 
 import { ToastContainer, toast } from "react-toastify";
-import { formatPublickey, parseSecondsToDate } from "../../utils/helpers";
+import { formatPublickey, parseSecondsToDate } from  "../../utils/helpers";
+import { programs } from '@metaplex/js';
+const { metadata: { Metadata } } = programs;
 interface SelectedTokens {
 	[takerVault: string]: { mint: string; type: string; creatorPk?: string; isFromWhiteList?: boolean };
 }
@@ -53,6 +55,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 
 	async function hasSufficientTokenBalance(takerBankWhitelist: { [key: string]: { publicKey: string; whiteListType: string }[] }): Promise<TokenBalanceProps> {
 		try {
+	
 			let aggregatedBalances = {};
 			const others = [];
 
@@ -72,8 +75,16 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 							for (const account of tokenAccounts.value) {
 								const { value } = await connection.getParsedAccountInfo(new PublicKey(account.account.data["parsed"].info.mint));
 
-								if (value.data["parsed"].info.mintAuthority === whitelistedAddress.publicKey) {
-									ownedMints.push(account.account.data["parsed"].info.mint);
+								//if supply === 0 => assume NFT & compare against creator array; else => use mintAuthority
+								if (parseInt(value.data["parsed"].info.supply) === 1) {
+									const tokenMetadata = await Metadata.load(connection, new PublicKey(account.account.data["parsed"].info.mint));
+									if (tokenMetadata.data.data.creators[0].address === whitelistedAddress.publicKey) {
+										ownedMints.push(account.account.data["parsed"].info.mint);
+									}
+								} else {
+									if (value.data["parsed"].info.mintAuthority === whitelistedAddress.publicKey) {
+										ownedMints.push(account.account.data["parsed"].info.mint);
+									}
 								}
 							}
 
@@ -174,7 +185,9 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 			return err;
 		}
 	}
+
 	useEffect(() => {
+
 		async function hasSufficientTokenBalance_() {
 			const tokens = await hasSufficientTokenBalance(takerBankWhitelist);
 			setAvailableTokens({ tokens });
@@ -373,10 +386,10 @@ export const MutationView: FC = ({}) => {
 	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
-		if (transmuterClient && wallet.publicKey) {
+		if (transmuterClient && wallet.publicKey && gemBankClient) {
 			getMutation();
 		}
-	}, [mutationPublicKey, transmuterClient, wallet.publicKey]);
+	}, [mutationPublicKey, transmuterClient, wallet.publicKey, gemBankClient]);
 	async function getMutation() {
 		const mutationPk = new PublicKey(mutationPublicKey);
 		const mutationData = await transmuterClient.programs.Transmuter.account.mutation.fetch(mutationPk);
@@ -566,8 +579,8 @@ export const MutationView: FC = ({}) => {
 	}
 
 	async function getAllWhitelistedPDAs(bank: PublicKey) {
-		const whitelistPdas = await gemBankClient.fetchAllWhitelistProofPDAs(bank);
-		const whitelistPdas_ = whitelistPdas.map((item) => {
+		const whitelistPdas = await gemBankClient?.fetchAllWhitelistProofPDAs(bank);
+		const whitelistPdas_ = whitelistPdas?.map((item) => {
 			return {
 				whiteListType: parseWhitelistType(item.account.whitelistType),
 				publicKey: item.account.whitelistedAddress.toBase58(),
@@ -579,7 +592,7 @@ export const MutationView: FC = ({}) => {
 
 	return (
 		<div className="py-10">
-			<ToastContainer theme="colored"/>
+			<ToastContainer theme="colored" />
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900 uppercase ">{new TextDecoder().decode(new Uint8Array(mutationData?.name))}</h1>

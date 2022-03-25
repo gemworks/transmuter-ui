@@ -326,8 +326,9 @@ export const TransmuterView: FC = ({}) => {
 					)}
 					{mutations.length > 0 ? (
 						<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
-							{mutations.map((mutation) => (
+							{mutations.map((mutation, index) => (
 								<li
+								key={index}
 									onClick={() => {
 										setSelectedMutation(mutation.account);
 										setSelectedMutationPk(mutation.publicKey);
