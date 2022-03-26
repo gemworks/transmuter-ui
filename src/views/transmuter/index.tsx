@@ -74,7 +74,6 @@ export const TransmuterView: FC = ({}) => {
 	const wallet = useWallet();
 	const { connection } = useConnection();
 	const router = useRouter();
-	// let { transmuterPublicKey } = router.query;
 
 	const { initTransmuterClient } = useTransmuterStore();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);

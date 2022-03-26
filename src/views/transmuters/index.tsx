@@ -105,10 +105,11 @@ export const TransmutersView: FC = ({}) => {
 	return (
 		<div className="py-10">
 			<ToastContainer />
+	
 			<header>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<h1 className="text-3xl font-bold leading-tight text-gray-900">Transmuters</h1>
-
+					{transmuters.length > 0 && (
 					<button
 						onClick={() => {
 							toast.promise(
@@ -135,8 +136,10 @@ export const TransmutersView: FC = ({}) => {
 						<PlusIcon className="-ml-1 mr-3 h-5 w-5" aria-hidden="true" />
 						Create Transmuter
 					</button>
+					)}
 				</div>
 			</header>
+	
 			<main>
 				<div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 					{/* Replace with your content */}
@@ -144,24 +147,22 @@ export const TransmutersView: FC = ({}) => {
 						{transmuters.length > 0 ? (	<TransmuterCard items={transmuters} />) : (		<button
 							type="button"
 							onClick={() => {
-								() => {
-									toast.promise(
-										initTransmuter_,
-										{
-											pending: "loading",
-											success: "Success!🎉",
-											error: {
-												render({ data }) {
-													//@ts-expect-error
-													return data.message;
-												},
+								toast.promise(
+									initTransmuter_,
+									{
+										pending: "loading",
+										success: "Success!🎉",
+										error: {
+											render({ data }) {
+												//@ts-expect-error
+												return data.message;
 											},
 										},
-										{
-											position: "bottom-right",
-										}
-									);
-								}
+									},
+									{
+										position: "bottom-right",
+									}
+								);
 							}}
 							className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 						>
