@@ -22,14 +22,16 @@ import { parseWhitelistType } from "../../utils/helpers";
 import { findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 
 import { ToastContainer, toast } from "react-toastify";
-import { formatPublickey, parseSecondsToDate } from  "../../utils/helpers";
-import { programs } from '@metaplex/js';
-const { metadata: { Metadata } } = programs;
+import { formatPublickey, parseSecondsToDate } from "../../utils/helpers";
+import { programs } from "@metaplex/js";
+const {
+	metadata: { Metadata },
+} = programs;
 interface SelectedTokens {
 	[takerVault: string]: { mint: string; type: string; creatorPk?: string; isFromWhiteList?: boolean };
 }
 interface VaultProps {
-	mutationData: MutationData;
+	mutationData: any;
 	takerBankWhitelist: { [key: string]: { publicKey: string; whiteListType: string }[] };
 	connection: Connection;
 	wallet: Wallet;
@@ -55,7 +57,6 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 
 	async function hasSufficientTokenBalance(takerBankWhitelist: { [key: string]: { publicKey: string; whiteListType: string }[] }): Promise<TokenBalanceProps> {
 		try {
-	
 			let aggregatedBalances = {};
 			const others = [];
 
@@ -187,7 +188,6 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 	}
 
 	useEffect(() => {
-
 		async function hasSufficientTokenBalance_() {
 			const tokens = await hasSufficientTokenBalance(takerBankWhitelist);
 			setAvailableTokens({ tokens });
@@ -361,7 +361,7 @@ export const MutationView: FC = ({}) => {
 	const { connection } = useConnection();
 	const [transmuterWrapper, setTransmuterWrapper] = useState<TransmuterWrapper>(null);
 	const [mutationWrapper, setMutationWrapper] = useState<MutationWrapper>(null);
-	const [mutationData, setMutationData] = useState<MutationData>(null);
+	const [mutationData, setMutationData] = useState<any>(null);
 	const { initTransmuterClient } = useTransmuterStore();
 	const router = useRouter();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
@@ -415,6 +415,7 @@ export const MutationView: FC = ({}) => {
 			const formattedTime = parseSecondsToDate(timeUntilFinished);
 			if (timeUntilFinished > 0) {
 				setTimeLeft({ raw: timeUntilFinished, formatted: formattedTime });
+				//@ts-ignore
 			} else if (takerReceipt[0].account.state?.notStarted) {
 				setTimeLeft({ raw: -99, formatted: "" });
 			} else {

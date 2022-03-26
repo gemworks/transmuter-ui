@@ -11,7 +11,7 @@ import { XIcon, RefreshIcon, ClockIcon, BeakerIcon, TicketIcon, ArrowRightIcon }
 import moment from "moment";
 import DestroyMutation from "../components/DestroyMutation";
 interface MutationProps {
-	mutationData: MutationData;
+	mutationData: any;
 	mutationPublicKey?: PublicKey;
 	transmuterWrapper: TransmuterWrapper;
 	getMutationsByTransmuter: () => void;
@@ -24,11 +24,10 @@ export default function ManageMutation({ mutationData, mutationPublicKey, transm
 	const [receipts, setReceipts] = useState([]);
 	const [mutationWrapper, setMutationWrapper] = useState<MutationWrapper>(null);
 	useEffect(() => {
-
 		if (mutationData) {
 			setMutationWrapper(new MutationWrapper(transmuterClient, mutationPublicKey, mutationData?.transmuter, mutationData));
 		}
-	
+
 		getReceipts();
 	}, [mutationData]);
 
@@ -67,7 +66,7 @@ export default function ManageMutation({ mutationData, mutationPublicKey, transm
 	}
 
 	async function destroyMutation() {
-		const {tx} = await mutationWrapper.destroy(mutationData?.transmuter);
+		const { tx } = await mutationWrapper.destroy(mutationData?.transmuter);
 		const { signature } = await tx.confirm();
 		if (signature) {
 			toggleState();

@@ -53,7 +53,6 @@ export const prepareMutation = async ({
 	takerTokenUnits: any;
 	executionPriceLamports?: BN;
 }) => {
-	console.log("check", makerTokenBAmountPerUse === true)
 	const config: MutationConfig = {
 		takerTokenA: {
 			gemBank: transmuter.bankA,
@@ -68,14 +67,14 @@ export const prepareMutation = async ({
 			totalFunding: makerTokenAmount,
 			amountPerUse: makerTokenAmountPerUse,
 		},
-		makerTokenB: makerTokenBAmountPerUse 
+		makerTokenB: makerTokenBAmountPerUse
 			? {
 					mint: makerMintB,
 					totalFunding: makerTokenBAmountPerUse.mul(uses),
 					amountPerUse: makerTokenBAmountPerUse,
 			  }
 			: null,
-		makerTokenC: makerTokenCAmountPerUse 
+		makerTokenC: makerTokenCAmountPerUse
 			? {
 					mint: makerMintC,
 					totalFunding: makerTokenCAmountPerUse.mul(uses),
@@ -91,7 +90,6 @@ export const prepareMutation = async ({
 	};
 
 	const { mutationWrapper, tx } = await sdk.initMutation(config, transmuter.key, uses, owner, mutationName);
-
 
 	await tx.confirm();
 

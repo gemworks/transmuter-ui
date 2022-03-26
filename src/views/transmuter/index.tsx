@@ -74,12 +74,13 @@ export const TransmuterView: FC = ({}) => {
 	const wallet = useWallet();
 	const { connection } = useConnection();
 	const router = useRouter();
-	const { transmuterPublicKey } = router.query;
+	// let { transmuterPublicKey } = router.query;
+
 	const { initTransmuterClient } = useTransmuterStore();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
 	const gemBankClient = useGembankStore((s) => s.gemBankClient);
 	const { initGemBankClient } = useGembankStore();
-
+	const [transmuterPublicKey, setTransmuterPublicKey] = useState<string>(router.query.transmuterPublicKey as string);
 	const [transmuterWrapper, setTransmuterWrapper] = useState<TransmuterWrapper>(null);
 	const [banks, setBanks] = useState<{ publicKey: string; letter: string }[]>([]);
 	const [bank, setBank] = useState<string>();
@@ -267,6 +268,7 @@ export const TransmuterView: FC = ({}) => {
 								className="text-2xl font-semibold text-gray-900 uppercase hover:opacity-75 transition-all duration-150 ease-in cursor-pointer w-64"
 								onClick={() => {
 									setShowItem(true);
+
 									copyToClipboard(transmuterPublicKey);
 									setTimeout(() => {
 										setShowItem(false);
@@ -328,7 +330,7 @@ export const TransmuterView: FC = ({}) => {
 						<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
 							{mutations.map((mutation, index) => (
 								<li
-								key={index}
+									key={index}
 									onClick={() => {
 										setSelectedMutation(mutation.account);
 										setSelectedMutationPk(mutation.publicKey);
