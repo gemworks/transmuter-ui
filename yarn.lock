@@ -2779,7 +2779,7 @@
   dependencies:
     "argparse" "^2.0.1"
 
-"jsbi@^3 || ^4":
+"jsbi@^3 || ^4", "jsbi@^4.2.0":
   "integrity" "sha512-JzhwPkH7Ra8O1b5uHmWxl6N8ZumqGvMXgpKcsq0/iWlnB+KkzbekCIcLl3hu3sFGTLNXAuXIqY4STtE0ZfT1zA=="
   "resolved" "https://registry.npmjs.org/jsbi/-/jsbi-4.2.0.tgz"
   "version" "4.2.0"
