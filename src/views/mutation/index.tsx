@@ -79,11 +79,15 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 								//if supply === 0 => assume NFT & compare against creator array; else => use mintAuthority
 								if (parseInt(value.data["parsed"].info.supply) === 1) {
 									const tokenMetadata = await Metadata.load(connection, new PublicKey(account.account.data["parsed"].info.mint));
-									if (tokenMetadata.data.data.creators[0].address === whitelistedAddress.publicKey) {
-										ownedMints.push(account.account.data["parsed"].info.mint);
+									if (tokenMetadata) {
+										if (tokenMetadata.data.data.creators[0].address === whitelistedAddress.publicKey) {
+											ownedMints.push(account.account.data["parsed"].info.mint);
+										}
 									}
 								} else {
+									console.log("no", parseInt(value.data["parsed"].info.supply));
 									if (value.data["parsed"].info.mintAuthority === whitelistedAddress.publicKey) {
+										console.log("sppply", parseInt(value.data["parsed"].info.supply));
 										ownedMints.push(account.account.data["parsed"].info.mint);
 									}
 								}
@@ -197,7 +201,12 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 			hasSufficientTokenBalance_,
 			{
 				pending: `getting data`,
-				error: "something went wrong",
+				error: {
+					render({ data }) {
+						//@ts-expect-error
+						return data.message;
+					},
+				},
 				success: `successfully received data`,
 			},
 			{

@@ -67,7 +67,7 @@ export function ToggleSwitch({ enabled, toggleSwitch }: ToggleSwitchProps) {
 interface CreateMutationSidebarProps {
 	open: boolean;
 	toggleState: () => void;
-	banks: {publicKey: string; letter: string}[];
+	banks: { publicKey: string; letter: string }[];
 	transmuterWrapper: TransmuterWrapper;
 	setBank: (bank: string) => void;
 	openBank: () => void;
@@ -86,13 +86,13 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	const [reversePrice, handleReversePriceChange, setReversePrice, resetReversePrice] = useInputState(0);
 
 	//maker vaults
-	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("8grhrMATijZHe72Hhyk6aMUM6tQLBahcmq1SR59jBwSw");
+	const [makerATokenAddress, handleMakerATokenAddressChange, setMakerATokenAddress, resetMakerATokenAddress] = useInputState("");
 	const [makerAAmountPerUse, handleMakerAAmountPerUseChange, setMakerAAmountPerUse, resetMakerAAmountPerUse] = useInputState(0);
 	const [makerATotalFunding, handleMakerATotalFundingChange, setMakerATotalFunding, resetMakerATotalFunding] = useInputState(0);
-	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("BYGKyq8cmXzvho3GNAsoYVPh5BuAsEVvbo1HYSWyW6E7");
+	const [makerBTokenAddress, handleMakerBTokenAddressChange, setMakerBTokenAddress, resetMakerBTokenAddress] = useInputState("");
 	const [makerBAmountPerUse, handleMakerBAmountPerUseChange, setMakerBAmountPerUse, resetMakerBAmountPerUse] = useInputState(0);
 	const [makerBTotalFunding, handleMakerBTotalFundingChange, setMakerBTotalFunding, resetMakerBTotalFunding] = useInputState(0);
-	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("3e1QSgpn9L2eNo41xShD7z3jFMTHA6jkv85CmRSpHJmz");
+	const [makerCTokenAddress, handleMakerCTokenAddressChange, setMakerCTokenAddress, resetMakerCTokenAddress] = useInputState("");
 	const [makerCAmountPerUse, handleMakerCAmountPerUseChange, setMakerCAmountPerUse, resetMakerCAmountPerUse] = useInputState(0);
 	const [makerCTotalFunding, handleMakerCTotalFundingChange, setMakerCTotalFunding, resetMakerCTotalFunding] = useInputState(0);
 	//taker vaults
@@ -133,7 +133,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	async function createMutation() {
 		await prepareMutation({
 			sdk: transmuterClient,
-			executionPriceLamports:toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
+			executionPriceLamports: toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
 			transmuter: transmuterWrapper,
 			mutationName: name,
 			owner: wallet.publicKey,
@@ -472,8 +472,8 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 															Taker Vaults
 														</label>
 														<p id="private-access-description" className="text-gray-500 text-sm mt-1">
-															Top up to three maker vaults with different tokens. The amount per use specifies how many tokens are transferred to the taker on a successful
-															execution of the respective mutation.
+															Specify how many tokens a taker must deposit and what happens with the deposited tokens afterward. The exact tokens that are allowed, are determined
+															by the whitelist of each bank.
 														</p>
 													</div>
 													<Vault
