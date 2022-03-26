@@ -65,6 +65,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 		tokens: {},
 	});
 	const [mutation, setMutation] = useState(mutationData.config);
+	const [isLoading, setIsLoading] = useState(true);
 
 	async function hasSufficientTokenBalance(takerBankWhitelist: { [key: string]: { publicKey: string; whiteListType: string }[] }): Promise<TokenBalanceProps> {
 		try {
@@ -222,10 +223,10 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 					};
 				}
 			});
-
+			setIsLoading(false);
 			return aggregatedBalances;
 		} catch (err) {
-			console.log(err);
+			setIsLoading(false);
 			return err;
 		}
 	}
@@ -271,102 +272,124 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 												<div className="flex items-center  text-sm mt-2 ">
 													<TrendingDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
 													<span className="text-gray-800 font-medium pl-1.5">{mutation[key].requiredAmount.toNumber()}</span>
-													<span className="text-gray-400 pl-1 ">token{mutation[key].requiredAmount.toNumber() > 1 && "s"} required per use</span>
 												</div>
 											</div>
 
 											<div className="pt-5">
-												{availableTokens.tokens[mutation[key].gemBank.toBase58()]?.availableMints !== undefined &&
-												Object.keys(availableTokens.tokens[mutation[key].gemBank.toBase58()]?.availableMints).length > 0 ? (
+												{isLoading ? (
 													<div className="space-y-2">
-														{Object.keys(availableTokens.tokens[mutation[key].gemBank.toBase58()]?.availableMints).map((key_, index) => (
-															<div
-																key={index}
-																onClick={() => {
-																	if (availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance) {
-																		setSelectedTokens((prevState) => ({
-																			...prevState,
-																			[mutation[key].gemBank.toBase58()]: {
-																				mint: key_,
-																				type: availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.type,
-																				isFromWhiteList: true,
-																				creatorPk:
-																					availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.creatorPk === undefined
-																						? ""
-																						: availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.creatorPk,
-																			},
-																		}));
-																	}
-																}}
-																className={`${selectedTokens[mutation[key].gemBank.toBase58()]?.mint === key_ ? "border-indigo-500" : "border-gray-200"} 
+
+												{[...Array(3)].map((e, i) => {
+															return (<div key={i} className="p-2 rounded-md border border-gray-200 bg-white flex justify-between items-center animate-pulse">
+															<div className="space-x-2 flex items-center">
+																<div className="object-scale-none w-7 h-7 rounded-full bg-gray-300"/>
+
+																<span className="pl-2 inline-flex text-xs leading-5 
+																rounded-full bg-gray-200 text-gray-200">gmgmgmgmgmgm</span>
+															
+															</div>
+
+											<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-100">gmgmgmgmgmgm</span>
+										</div>
+												)})}
+												
+													</div>
+												) : (
+													<>
+														{" "}
+														{availableTokens.tokens[mutation[key].gemBank.toBase58()]?.availableMints !== undefined &&
+														Object.keys(availableTokens.tokens[mutation[key].gemBank.toBase58()]?.availableMints).length > 0 ? (
+															<div className="space-y-2">
+																{Object.keys(availableTokens.tokens[mutation[key].gemBank.toBase58()]?.availableMints).map((key_, index) => (
+																	<div
+																		key={index}
+																		onClick={() => {
+																			if (availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance) {
+																				setSelectedTokens((prevState) => ({
+																					...prevState,
+																					[mutation[key].gemBank.toBase58()]: {
+																						mint: key_,
+																						type: availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.type,
+																						isFromWhiteList: true,
+																						creatorPk:
+																							availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.creatorPk === undefined
+																								? ""
+																								: availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.creatorPk,
+																					},
+																				}));
+																			}
+																		}}
+																		className={`${selectedTokens[mutation[key].gemBank.toBase58()]?.mint === key_ ? "border-indigo-500" : "border-gray-200"} 
 															
 															${!availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance && "opacity-50 cursor-not-allowed hover:opacity-50"}
 															flex p-2 rounded-md hover:opacity-75 transition-all duration-150 ease-in border  bg-white items-center relative cursor-pointer focus:outline-none sm:text-sm justify-between `}
-															>
-																{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata ? (
-																	<div className="space-x-2 flex items-center">
-																		<img
-																			src={availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata.image}
-																			className="object-scale-none w-7 h-7 rounded-full"
-																		/>
-																		<span className="pl-2">{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata.name}</span>
-																	</div>
-																) : (
-																	<div className="space-x-2 flex items-center">
-																		<GradientAvatar width={7} height={7} hash={key_} />
+																	>
+																		{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata ? (
+																			<div className="space-x-2 flex items-center">
+																				<img
+																					src={availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata.image}
+																					className="object-scale-none w-7 h-7 rounded-full"
+																				/>
+																				<span className="pl-2">{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata.name}</span>
+																			</div>
+																		) : (
+																			<div className="space-x-2 flex items-center">
+																				<GradientAvatar width={7} height={7} hash={key_} />
 
-																		<span className="pl-2">{formatPublickey(key_)}</span>
-																	</div>
-																)}
+																				<span className="pl-2">{formatPublickey(key_)}</span>
+																			</div>
+																		)}
 
-																{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance ? (
-																	// <div className="text-green-500 text-xs">enough tokens</div>
-																	<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">sufficient tokens</span>
-																) : (
-																	<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">insufficient tokens</span>
-																)}
+																		{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance ? (
+																
+																			<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">sufficient tokens</span>
+																		) : (
+																			<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">insufficient tokens</span>
+																		)}
+																	</div>
+																))}
 															</div>
-														))}
-													</div>
-												) : (
-													<div>
-														<input
-															placeholder="use any token mint"
-															value={selectedTokens[mutation[key].gemBank.toBase58()]?.mint || ""}
-															onChange={(e: any) => {
-																if (Object.keys(selectedTokens).length === 0) {
-																	setSelectedTokens({ [mutation[key].gemBank.toBase58()]: { mint: e.target.value, type: "mint", isFromWhiteList: false } });
-																} else {
-																	setSelectedTokens((prevState) => ({
-																		...prevState,
-																		[mutation[key].gemBank.toBase58()]: { mint: e.target.value, type: "mint", isFromWhiteList: false },
-																	}));
-																}
-															}}
-															onPaste={(e: any) => {
-																e.preventDefault();
-																const pastedText = e.clipboardData.getData("Text");
-																if (Object.keys(selectedTokens).length === 0) {
-																	setSelectedTokens({ [mutation[key].gemBank.toBase58()]: { mint: pastedText, type: "mint", isFromWhiteList: false } });
-																} else {
-																	setSelectedTokens((prevState) => ({
-																		...prevState,
-																		[mutation[key].gemBank.toBase58()]: { mint: pastedText, type: "mint", isFromWhiteList: false },
-																	}));
-																}
-															}}
-															onCut={(e: any) => {
-																setSelectedTokens((prevState) => ({
-																	...prevState,
-																	[mutation[key].gemBank.toBase58()]: { mint: e.target.value, type: "mint", isFromWhiteList: false },
-																}));
-															}}
-															type="text"
-															name="project-name"
-															id="project-name"
-															className="block p-2 rounded-md border-gray-300  focus:border-indigo-500 focus:ring-indigo-500  transition-all duration-150 ease-in  sm:text-sm w-full"
-														/>
-													</div>
+														) : (
+															<div>
+																<input
+																	placeholder="use any token mint"
+																	value={selectedTokens[mutation[key].gemBank.toBase58()]?.mint || ""}
+																	onChange={(e: any) => {
+																		if (Object.keys(selectedTokens).length === 0) {
+																			setSelectedTokens({ [mutation[key].gemBank.toBase58()]: { mint: e.target.value, type: "mint", isFromWhiteList: false } });
+																		} else {
+																			setSelectedTokens((prevState) => ({
+																				...prevState,
+																				[mutation[key].gemBank.toBase58()]: { mint: e.target.value, type: "mint", isFromWhiteList: false },
+																			}));
+																		}
+																	}}
+																	onPaste={(e: any) => {
+																		e.preventDefault();
+																		const pastedText = e.clipboardData.getData("Text");
+																		if (Object.keys(selectedTokens).length === 0) {
+																			setSelectedTokens({ [mutation[key].gemBank.toBase58()]: { mint: pastedText, type: "mint", isFromWhiteList: false } });
+																		} else {
+																			setSelectedTokens((prevState) => ({
+																				...prevState,
+																				[mutation[key].gemBank.toBase58()]: { mint: pastedText, type: "mint", isFromWhiteList: false },
+																			}));
+																		}
+																	}}
+																	onCut={(e: any) => {
+																		setSelectedTokens((prevState) => ({
+																			...prevState,
+																			[mutation[key].gemBank.toBase58()]: { mint: e.target.value, type: "mint", isFromWhiteList: false },
+																		}));
+																	}}
+																	type="text"
+																	name="project-name"
+																	id="project-name"
+																	className="block p-2 rounded-md border-gray-300  focus:border-indigo-500 focus:ring-indigo-500  transition-all duration-150 ease-in  sm:text-sm w-full"
+																/>
+															</div>
+														)}
+													</>
 												)}
 											</div>
 										</div>
