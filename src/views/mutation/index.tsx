@@ -24,6 +24,7 @@ import { findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 import { ToastContainer, toast } from "react-toastify";
 import { formatPublickey, parseSecondsToDate } from "../../utils/helpers";
 import { programs } from "@metaplex/js";
+import axios from "axios";
 const {
 	metadata: { Metadata },
 } = programs;
@@ -41,7 +42,17 @@ interface VaultProps {
 
 interface TokenBalanceProps {
 	[bank: string]: {
-		availableMints: { [mint: string]: { hasSufficientBalance: boolean; type: string; creatorPk?: string } };
+		availableMints: {
+			[mint: string]: {
+				hasSufficientBalance: boolean;
+				type: string;
+				creatorPk?: string;
+				metadata?: {
+					name: string;
+					image: string;
+				};
+			};
+		};
 		whiteListLength: number;
 	};
 }
@@ -71,47 +82,74 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 
 					for await (const whitelistedAddress of bank) {
 						if (whitelistedAddress.whiteListType.toLowerCase() === "creator") {
-							const ownedMints = [];
+							const ownedMints: { mint: string; metadata?: string }[] = [];
 							//check if the whitelisted creator address matches the mint authority of the token
 							for (const account of tokenAccounts.value) {
 								const { value } = await connection.getParsedAccountInfo(new PublicKey(account.account.data["parsed"].info.mint));
 
 								//if supply === 0 => assume NFT & compare against creator array; else => use mintAuthority
+
 								if (parseInt(value.data["parsed"].info.supply) === 1) {
-									const tokenMetadata = await Metadata.load(connection, new PublicKey(account.account.data["parsed"].info.mint));
-									if (tokenMetadata) {
-										if (tokenMetadata.data.data.creators[0].address === whitelistedAddress.publicKey) {
-											ownedMints.push(account.account.data["parsed"].info.mint);
-										}
+									const metadataPDA = await Metadata.getPDA(new PublicKey(account.account.data["parsed"].info.mint));
+									const tokenMetadata = await Metadata.load(connection, metadataPDA);
+
+									if (tokenMetadata.data.data.creators[0].address === whitelistedAddress.publicKey) {
+										ownedMints.push({ mint: account.account.data["parsed"].info.mint, metadata: tokenMetadata.data.data.uri });
 									}
 								} else {
-									console.log("no", parseInt(value.data["parsed"].info.supply));
 									if (value.data["parsed"].info.mintAuthority === whitelistedAddress.publicKey) {
-										console.log("sppply", parseInt(value.data["parsed"].info.supply));
-										ownedMints.push(account.account.data["parsed"].info.mint);
+										ownedMints.push({ mint: account.account.data["parsed"].info.mint });
 									}
 								}
 							}
 
 							//check if the user has any of these tokens in his wallet
 							let mintBalances = {};
-							for (const mint of ownedMints) {
+							for (const token of ownedMints) {
 								const res = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
-									mint: new PublicKey(mint),
+									mint: new PublicKey(token.mint),
 								});
 
 								if (res.value.length > 0) {
-									mintBalances[mint] = {
-										hasSufficientBalance: true,
-										type: "creator",
-										creatorPk: whitelistedAddress.publicKey,
-									};
+									if (token?.metadata) {
+										const { data } = await axios.get(token?.metadata);
+										const { name, image } = data;
+										mintBalances[token.mint] = {
+											hasSufficientBalance: true,
+											type: "creator",
+											creatorPk: whitelistedAddress.publicKey,
+											metadata: {
+												name,
+												image,
+											},
+										};
+									} else {
+										mintBalances[token.mint] = {
+											hasSufficientBalance: true,
+											type: "creator",
+											creatorPk: whitelistedAddress.publicKey,
+										};
+									}
 								} else {
-									mintBalances[mint] = {
-										hasSufficientBalance: false,
-										type: "creator",
-										creatorPk: whitelistedAddress.publicKey,
-									};
+									if (token?.metadata) {
+										const { data } = await axios.get(token?.metadata);
+										const { name, image } = data;
+										mintBalances[token.mint] = {
+											hasSufficientBalance: false,
+											type: "creator",
+											creatorPk: whitelistedAddress.publicKey,
+											metadata: {
+												name,
+												image,
+											},
+										};
+									} else {
+										mintBalances[token.mint] = {
+											hasSufficientBalance: false,
+											type: "creator",
+											creatorPk: whitelistedAddress.publicKey,
+										};
+									}
 								}
 
 								//push tokens created by the specified address to the array
@@ -187,6 +225,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 
 			return aggregatedBalances;
 		} catch (err) {
+			console.log(err);
 			return err;
 		}
 	}
@@ -264,11 +303,21 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 															${!availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance && "opacity-50 cursor-not-allowed hover:opacity-50"}
 															flex p-2 rounded-md hover:opacity-75 transition-all duration-150 ease-in border  bg-white items-center relative cursor-pointer focus:outline-none sm:text-sm justify-between `}
 															>
-																<div className="space-x-2 flex items-center">
-																	<GradientAvatar width={7} height={7} hash={key_} />
+																{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata ? (
+																	<div className="space-x-2 flex items-center">
+																		<img
+																			src={availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata.image}
+																			className="object-scale-none w-7 h-7 rounded-full"
+																		/>
+																		<span className="pl-2">{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.metadata.name}</span>
+																	</div>
+																) : (
+																	<div className="space-x-2 flex items-center">
+																		<GradientAvatar width={7} height={7} hash={key_} />
 
-																	<span className="pl-2">{formatPublickey(key_)}</span>
-																</div>
+																		<span className="pl-2">{formatPublickey(key_)}</span>
+																	</div>
+																)}
 
 																{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance ? (
 																	// <div className="text-green-500 text-xs">enough tokens</div>
@@ -395,7 +444,7 @@ export const MutationView: FC = ({}) => {
 	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
-		if (transmuterClient && wallet.publicKey && gemBankClient) {
+		if (transmuterClient && wallet.publicKey && gemBankClient && mutationPublicKey) {
 			getMutation();
 		}
 	}, [mutationPublicKey, transmuterClient, wallet.publicKey, gemBankClient]);
