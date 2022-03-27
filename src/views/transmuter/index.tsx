@@ -11,9 +11,8 @@ import CreateMutationSidebar from "../../components/CreateMutationSidebar";
 import ManageMutation from "../../components/ManageMutation";
 // Store
 import useTransmuterStore from "../../stores/useTransmuterStore";
-import useGembankStore from "../../stores/useGembankStore";
 import { PublicKey } from "@solana/web3.js";
-import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid, TrashIcon, LibraryIcon } from "@heroicons/react/outline";
+import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid, LibraryIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
 import BankSidebar from "../../components/BankSidebar";
@@ -75,9 +74,6 @@ export const TransmuterView: FC = ({}) => {
 
 	const { initTransmuterClient } = useTransmuterStore();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
-	const gemBankClient = useGembankStore((s) => s.gemBankClient);
-	const { initGemBankClient } = useGembankStore();
-	// const [transmuterPublicKey, setTransmuterPublicKey] = useState<string>(router.query.transmuterPublicKey as string);
 	const [transmuterWrapper, setTransmuterWrapper] = useState<TransmuterWrapper>(null);
 	const [banks, setBanks] = useState<{ publicKey: string; letter: string }[]>([]);
 	const [bank, setBank] = useState<string>();
@@ -130,19 +126,20 @@ export const TransmuterView: FC = ({}) => {
 	}
 
 	useEffect(() => {
-		if (wallet.publicKey && transmuterClient === null) {
+		setIsLoading(true);
+		if (wallet.publicKey) {
 			initTransmuterClient(wallet, connection);
-			initGemBankClient(wallet, connection);
+		
 		}
 	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
-		if (transmuterClient && transmuterPublicKey) {
+		if (transmuterClient && transmuterPublicKey && wallet.publicKey) {
 			getTransmuter(transmuterClient);
 			getMutationsByTransmuter(transmuterClient);
 			setIsLoading(false);
 		}
-	}, [transmuterClient]);
+	}, [transmuterClient, connection, wallet.publicKey]);
 
 	async function getTransmuter(transmuterClient: TransmuterSDK) {
 		const transmuterPk = new PublicKey(transmuterPublicKey);
@@ -163,7 +160,6 @@ export const TransmuterView: FC = ({}) => {
 	async function getMutationsByTransmuter(transmuterClient: TransmuterSDK) {
 		const accounts = await transmuterClient.programs.Transmuter.account.mutation.all();
 		const mutations = accounts.filter((account) => account.account.transmuter.toBase58() == transmuterPublicKey);
-
 		setMutations(mutations);
 	}
 

@@ -52,7 +52,8 @@ export const TransmutersView: FC = ({}) => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		if (wallet.publicKey && transmuterClient === null) {
+		setIsLoading(true);
+		if (wallet.publicKey) {
 			initTransmuterClient(wallet, connection);
 		}
 	}, [wallet.publicKey, connection]);
@@ -60,6 +61,7 @@ export const TransmutersView: FC = ({}) => {
 	useEffect(() => {
 		if (transmuterClient && wallet.publicKey && transmuterClient !== null) {
 			getTransmuters(transmuterClient);
+			setIsLoading(false);
 		}
 	}, [transmuterClient, wallet.publicKey, connection]);
 
