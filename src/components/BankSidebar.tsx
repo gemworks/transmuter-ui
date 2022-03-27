@@ -1,9 +1,9 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { XIcon } from "@heroicons/react/outline";
+import { XIcon, FilterIcon } from "@heroicons/react/outline";
 import { PublicKey } from "@solana/web3.js";
 import { TransmuterWrapper } from "@gemworks/transmuter-ts";
-import { RarityConfig, WhitelistType } from "@gemworks/gem-farm-ts";
+import { WhitelistType } from "@gemworks/gem-farm-ts";
 import { Icon } from "./Icon";
 import useGembankStore from "../stores/useGembankStore";
 import { WhiteListProps } from "../interfaces";
@@ -100,6 +100,7 @@ export default function BankSidebar({
 				publicKey: item.account.whitelistedAddress.toBase58(),
 			};
 		});
+
 		setWhiteList(whitelistPdas_);
 	}
 
@@ -144,7 +145,6 @@ export default function BankSidebar({
 										<div className="px-4 sm:px-6">
 											<div className="flex items-start justify-between">
 												<Dialog.Title className="text-lg font-medium text-gray-900">
-									
 													<dt className="text-sm font-medium text-gray-500 truncate ">Bank {bankLetter}</dt>
 													<Transition
 														show={showItem}
@@ -156,8 +156,6 @@ export default function BankSidebar({
 														leaveTo="opacity-0"
 													>
 														<span className="absolute inset-x-0 bottom-full mb-2.5 flex justify-center">
-											
-
 															<span className="bg-gray-900 text-white rounded-md text-[0.625rem] leading-4 tracking-wide font-semibold uppercase py-1 px-3 filter drop-shadow-md">
 																<svg aria-hidden="true" width="16" height="6" viewBox="0 0 16 6" className="text-gray-900 absolute top-full left-1/2 -mt-px -ml-2 ">
 																	<path
@@ -169,9 +167,8 @@ export default function BankSidebar({
 																</svg>
 																Copied!
 															</span>
-													
 														</span>
-														</Transition>
+													</Transition>
 													<dd
 														className="text-2xl font-semibold text-gray-900 uppercase hover:opacity-75 transition-all duration-150 ease-in cursor-pointer"
 														onClick={() => {
@@ -253,33 +250,43 @@ export default function BankSidebar({
 									<div className={`${isTransmuterOwner ? "h-2/4" : "h-4/5"} flex flex-col bg-white shadow-xl `}>
 										<h3 className="font-medium text-gray-900  px-4 sm:px-6 py-4">Whitelisted Addresses</h3>
 										<div className="flex-1 flex overflow-hidden">
-											<div className="mt-2 relative px-4 sm:px-6  flex-1 overflow-y-scroll">
-												<div className="flex-1   ">
-													{whiteList.map((item, index) => (
-														<ul className="border-t border-b border-gray-200 divide-y divide-gray-200 w-full" key={index}>
-															{" "}
-															<Icon
-																isTransmuterOwner={isTransmuterOwner}
-																publicKey={item.publicKey}
-																whiteListType={item.whiteListType}
-																removeFromWhiteList={() => {
-																	toast.promise(
-																		removeFromBankWhitelist(item.publicKey),
-																		{
-																			pending: `Removing ${item.publicKey}`,
-																			success: `Successfully removed ${item.publicKey}`,
-																			error: "Something went wrong 😕",
-																		},
-																		{
-																			position: "bottom-right",
-																		}
-																	);
-																}}
-															/>
-														</ul>
-													))}
+											{whiteList.length > 0 ? (
+												<div className="mt-2 relative px-4 sm:px-6  flex-1 overflow-y-auto">
+													<div className="flex-1   ">
+														{whiteList.map((item, index) => (
+															<ul className="border-t border-b border-gray-200 divide-y divide-gray-200 w-full" key={index}>
+																{" "}
+																<Icon
+																	isTransmuterOwner={isTransmuterOwner}
+																	publicKey={item.publicKey}
+																	whiteListType={item.whiteListType}
+																	removeFromWhiteList={() => {
+																		toast.promise(
+																			removeFromBankWhitelist(item.publicKey),
+																			{
+																				pending: `Removing ${item.publicKey}`,
+																				success: `Successfully removed ${item.publicKey}`,
+																				error: "Something went wrong 😕",
+																			},
+																			{
+																				position: "bottom-right",
+																			}
+																		);
+																	}}
+																/>
+															</ul>
+														))}
+													</div>
 												</div>
-											</div>
+											) : (
+												<div className="flex flex-col h-full w-full justify-center">
+													{" "}
+													<div className="text-center">
+														<FilterIcon aria-hidden="true" className="w-10 h-10 mx-auto text-gray-400" />
+														<h3 className="mt-2 text-sm font-medium text-gray-900">No whitelisted addresses found</h3>
+													</div>{" "}
+												</div>
+											)}
 										</div>
 									</div>
 								</div>

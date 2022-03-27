@@ -278,21 +278,24 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 											<div className="pt-5">
 												{isLoading ? (
 													<div className="space-y-2">
+														{[...Array(3)].map((e, index) => {
+															return (
+																<div key={index} className="p-2 rounded-md border border-gray-200 bg-white flex justify-between items-center animate-pulse">
+																	<div className="space-x-2 flex items-center">
+																		<div className="object-scale-none w-7 h-7 rounded-full bg-gray-300" />
 
-												{[...Array(3)].map((e, i) => {
-															return (<div key={i} className="p-2 rounded-md border border-gray-200 bg-white flex justify-between items-center animate-pulse">
-															<div className="space-x-2 flex items-center">
-																<div className="object-scale-none w-7 h-7 rounded-full bg-gray-300"/>
+																		<span
+																			className="pl-2 inline-flex text-xs leading-5 
+																rounded-full bg-gray-200 text-gray-200"
+																		>
+																			gmgmgmgmgmgm
+																		</span>
+																	</div>
 
-																<span className="pl-2 inline-flex text-xs leading-5 
-																rounded-full bg-gray-200 text-gray-200">gmgmgmgmgmgm</span>
-															
-															</div>
-
-											<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-100">gmgmgmgmgmgm</span>
-										</div>
-												)})}
-												
+																	<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-100">gmgmgmgmgmgm</span>
+																</div>
+															);
+														})}
 													</div>
 												) : (
 													<>
@@ -341,7 +344,6 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 																		)}
 
 																		{availableTokens.tokens[mutation[key]?.gemBank.toBase58()]?.availableMints[key_]?.hasSufficientBalance ? (
-																
 																			<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">sufficient tokens</span>
 																		) : (
 																			<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">insufficient tokens</span>

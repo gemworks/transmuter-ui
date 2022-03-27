@@ -33,7 +33,6 @@ export default function ManageMutation({ mutationData, mutationPublicKey, transm
 
 	async function getReceipts() {
 		const receipts = await transmuterClient?.findAllReceipts(undefined, mutationPublicKey);
-
 		if (receipts) {
 			setReceipts(receipts);
 		}
@@ -192,9 +191,9 @@ export default function ManageMutation({ mutationData, mutationPublicKey, transm
 										</div>
 
 										{receipts.length > 0 ? (
-											<div className="flex-1 flex overflow-hidden">
+											<div className="flex-1 flex overflow-hidden ">
 												{" "}
-												<div className="mt-2 relative px-4 sm:px-6  flex-1 overflow-y-scroll">
+												<div className="mt-2 relative px-4 sm:px-6  flex-1 overflow-y-auto ">
 													<div className="flex-1">
 														{receipts.map((item, index) => (
 															<ul key={index} className="border-t border-gray-200  w-full flex py-3 items-center hover:opacity-60 duration-150 ease-in transition-all">
@@ -203,7 +202,7 @@ export default function ManageMutation({ mutationData, mutationPublicKey, transm
 																<div>
 																	<div className="flex items-center">
 																		<span
-																			className={`text-xs inline-flex items-center px-2 py-0.5 rounded font-medium text-${getExecutionState(item.account.state).color}-500 bg-${
+																			className={`text-xs inline-flex items-center px-2 py-0.5 rounded font-medium text-${getExecutionState(item.account.state).color}-800 bg-${
 																				getExecutionState(item.account.state).color
 																			}-100 `}
 																		>
@@ -212,7 +211,9 @@ export default function ManageMutation({ mutationData, mutationPublicKey, transm
 																		{!item.account.state?.notStarted && (
 																			<span className="text-gray-500 text-xs pl-1.5 font-medium flex items-center ">
 																				<ClockIcon aria-hidden="true" className="w-5 h-5 pr-1" />
-																				<div>{moment.unix(item.account.mutationCompleteTs.toNumber()).format("DD MM YYYY HH:mm")}</div>
+																				<div>{moment.unix(item.account.mutationCompleteTs.toNumber()).format("DD MM YYYY HH:mm")}
+																				</div>
+																		
 																			</span>
 																		)}
 																	</div>
