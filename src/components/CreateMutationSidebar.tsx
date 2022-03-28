@@ -71,9 +71,10 @@ interface CreateMutationSidebarProps {
 	transmuterWrapper: TransmuterWrapper;
 	setBank: (bank: string) => void;
 	openBank: () => void;
+	getMutationsByTransmuter: () => void;
 }
 
-export default function CreateMutationSidebar({ open, toggleState, banks, setBank, openBank, transmuterWrapper }: CreateMutationSidebarProps) {
+export default function CreateMutationSidebar({ open, toggleState, banks, setBank, openBank, transmuterWrapper, getMutationsByTransmuter }: CreateMutationSidebarProps) {
 	const [enabled, setEnabled] = useState(false);
 	const wallet = useWallet();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
@@ -131,7 +132,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	}
 
 	async function createMutation() {
-		await prepareMutation({
+		const signature = await prepareMutation({
 			sdk: transmuterClient,
 			executionPriceLamports: toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
 			transmuter: transmuterWrapper,
@@ -164,6 +165,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 			makerTokenCAmountPerUse: makerCAmountPerUse > 0 && toBN(parseFloat(makerCAmountPerUse)),
 			takerTokenUnits: RequiredUnits.Gems,
 		});
+
+		if (signature) {
+			toggleState();
+			getMutationsByTransmuter();
+		}
 	}
 
 	return (

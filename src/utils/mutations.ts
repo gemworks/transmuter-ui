@@ -91,7 +91,8 @@ export const prepareMutation = async ({
 
 	const { mutationWrapper, tx } = await sdk.initMutation(config, transmuter.key, uses, owner, mutationName);
 
-	await tx.confirm();
+	const {signature} = await tx.confirm();
+	return signature;
 
 	// setup & fill up any relevant taker vaults
 	// ({ vault: takerVaultA, takerMint: takerMintA, takerAcc: takerAccA } = await prepareTakerVaults(transmuter.bankA));

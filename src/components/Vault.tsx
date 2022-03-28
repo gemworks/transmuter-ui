@@ -199,8 +199,8 @@ export default function Vault({
 						<div className="space-y-5 sm:col-span-2">
 							<div className={`sm:mt-0 ${enabled && "opacity-50 cursor-disabled"}`}>
 								<RadioGroup className="space-y-5" value={escrowAccountAction} onChange={setEscrowAccountAction} disabled={enabled}>
-									{vaulOptions.map((vaultOption) => (
-										<div className="relative flex items-start">
+									{vaulOptions.map((vaultOption, index) => (
+										<div key={index} className="relative flex items-start">
 											<div className="absolute flex h-5 items-center">
 												<RadioGroup.Option
 													key={vaultOption.value}

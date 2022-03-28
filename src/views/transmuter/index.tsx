@@ -50,21 +50,7 @@ export function BankCard({ bank, setBank }: BankCardProps) {
 	);
 }
 
-//create new transmuter
 
-export function CreateTransmuterCard() {
-	return (
-		<Link href={`/transmuter/create`}>
-			<button
-				type="button"
-				className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-			>
-				<PlusIcon className=" mr-3 h-10 w-10" aria-hidden="true" />
-				Create New Transmuter
-			</button>
-		</Link>
-	);
-}
 
 export const TransmuterView: FC = ({}) => {
 	const wallet = useWallet();
@@ -88,6 +74,7 @@ export const TransmuterView: FC = ({}) => {
 	const [selectedMutation, setSelectedMutation] = useState<any>(null);
 	const [selectedMutationPk, setSelectedMutationPk] = useState<PublicKey>();
 	const [isLoading, setIsLoading] = useState(true);
+	const [isLoadingTwo, setIsLoadingTwo] = useState(false);
 
 	const [mutations, setMutations] = useState<any[]>([]);
 	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
@@ -137,7 +124,9 @@ export const TransmuterView: FC = ({}) => {
 		if (transmuterClient && transmuterPublicKey && wallet.publicKey) {
 			getTransmuter(transmuterClient);
 			getMutationsByTransmuter(transmuterClient);
-			setIsLoading(false);
+	
+				setIsLoading(false);
+	
 		}
 	}, [transmuterClient, connection, wallet.publicKey]);
 
@@ -157,10 +146,17 @@ export const TransmuterView: FC = ({}) => {
 			{ publicKey: bankC.toBase58(), letter: "C" },
 		]);
 	}
-	async function getMutationsByTransmuter(transmuterClient: TransmuterSDK) {
+	async function getMutationsByTransmuter(transmuterClient: TransmuterSDK, loading?: boolean) {
+		if (loading) {
+			setIsLoadingTwo(true);
+		}
 		const accounts = await transmuterClient.programs.Transmuter.account.mutation.all();
 		const mutations = accounts.filter((account) => account.account.transmuter.toBase58() == transmuterPublicKey);
+		
 		setMutations(mutations);
+		if (loading) {
+			setIsLoadingTwo(false);
+		}
 	}
 
 	return (
@@ -188,6 +184,9 @@ export const TransmuterView: FC = ({}) => {
 					setMutation(false);
 					setMutationDraft(true);
 				}}
+				getMutationsByTransmuter={() => {
+					getMutationsByTransmuter(transmuterClient, true)
+				}}
 				transmuterWrapper={transmuterWrapper}
 				toggleState={() => toggleMutation()}
 			/>
@@ -204,22 +203,7 @@ export const TransmuterView: FC = ({}) => {
 				transmuterWrapper={transmuterWrapper}
 				open={openMutationManager}
 				getMutationsByTransmuter={() => {
-					toast.promise(
-						getMutationsByTransmuter(transmuterClient),
-						{
-							pending: "Loading",
-							success: "Success!🎉",
-							error: {
-								render({ data }) {
-									//@ts-expect-error
-									return data.message;
-								},
-							},
-						},
-						{
-							position: "bottom-right",
-						}
-					);
+					getMutationsByTransmuter(transmuterClient, true)
 				}}
 				toggleState={() => toggleMutationManager()}
 			/>
@@ -299,7 +283,7 @@ export const TransmuterView: FC = ({}) => {
 			<main>
 				<div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 					<h2 className="text-xl font-bold leading-tight text-gray-700 mb-4">Banks</h2>
-					{isLoading ? (
+					{isLoading  ? (
 						<SkeletonGridCards numberOfCards={3} showCard={isLoading} />
 					) : (
 						<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
@@ -329,7 +313,7 @@ export const TransmuterView: FC = ({}) => {
 							Create Mutation
 						</button>
 					)}
-					{isLoading ? (
+					{isLoading || isLoadingTwo ? (
 						<SkeletonGridCards numberOfCards={5} showCard={isLoading} />
 					) : (
 						<>
