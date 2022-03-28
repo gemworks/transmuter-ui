@@ -8,8 +8,7 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { RefreshIcon, ClockIcon, BeakerIcon, CheckCircleIcon } from "@heroicons/react/outline";
 import useTransmuterStore from "../../stores/useTransmuterStore";
 
-import { Wallet } from "@saberhq/solana-contrib";
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { useRouter } from "next/router";
 import { TransmuterWrapper, MutationWrapper, MutationData } from "@gemworks/transmuter-ts";
@@ -42,7 +41,6 @@ export const MutationView: FC = ({}) => {
 	const [timeLeft, setTimeLeft] = useState<{ raw: number; formatted: string }>({ raw: -99, formatted: "" });
 	useEffect(() => {
 		if (wallet.publicKey && connection) {
-	
 				initTransmuterClient(wallet, connection);
 				initGemBankClient(wallet, connection);
 		}
@@ -51,6 +49,11 @@ export const MutationView: FC = ({}) => {
 	useEffect(() => {
 		if (transmuterClient && wallet.publicKey && gemBankClient && mutationPublicKey) {
 			getMutation();
+		}
+
+		if (!wallet.publicKey) {
+			setTimeLeft({ raw: -99, formatted: "" });
+			setMutationReceipt(null);
 		}
 	}, [mutationPublicKey, transmuterClient, wallet.publicKey, gemBankClient]);
 	async function getMutation() {
@@ -124,13 +127,23 @@ export const MutationView: FC = ({}) => {
 		if (mutationReceipt?.state?.pending && timeLeft.raw === 0) {
 			//execute mutation
 			const { tx } = await mutationWrapper.execute(wallet.publicKey, undefined, mutationOwner);
-			await tx.confirm();
+			const { signature } = await tx.confirm();
+
+			if (signature) {
+				await getMutation();
+			}
+			return;
 		}
 
 		// reverse mutation
 		if (mutationReceipt?.state?.complete && mutationData?.config.reversible) {
 			const { tx } = await mutationWrapper.reverse(wallet.publicKey, mutationOwner);
-			await tx.confirm();
+			const { signature } = await tx.confirm();
+
+			if (signature) {
+				await getMutation();
+			}
+			return;
 		}
 
 		//check if tokens were selected by user
