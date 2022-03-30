@@ -1,4 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XIcon, FilterIcon } from "@heroicons/react/outline";
 import { PublicKey } from "@solana/web3.js";
@@ -79,12 +80,22 @@ export default function BankSidebar({
 	isTransmuterOwner,
 	bankLetter,
 }: SlideOverProps) {
+	const wallet = useWallet();
+	const { connection } = useConnection();
 	const gemBankClient = useGembankStore((s) => s.gemBankClient);
+	const { initGemBankClient } = useGembankStore();
 	const [whiteList, setWhiteList] = useState<WhiteListProps[]>([]);
 	const [whitelistType, setWhitelistType] = useState<WhitelistType>(WhitelistType.Creator);
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
 	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
 	const [showItem, setShowItem] = useState(false);
+
+	useEffect(() => {
+		if (wallet.publicKey && connection) {
+				initGemBankClient(wallet, connection);
+		}
+	}, [wallet.publicKey, connection]);
+
 	useEffect(() => {
 		if (gemBankClient !== null && bankPk !== undefined && bankPk !== "") {
 			main();
