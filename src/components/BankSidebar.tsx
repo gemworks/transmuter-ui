@@ -85,6 +85,13 @@ export default function BankSidebar({
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
 	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
 	const [showItem, setShowItem] = useState(false);
+
+	useEffect(() => {
+		if (wallet.publicKey && connection && gemBankClient === null) {
+			initGemBankClient(wallet, connection);
+		}
+	}, [wallet.publicKey, connection]);
+
 	useEffect(() => {
 		if (gemBankClient !== null && bankPk !== undefined && bankPk !== "") {
 			main();
