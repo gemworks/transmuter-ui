@@ -12,7 +12,6 @@ import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { useRouter } from "next/router";
 import { TransmuterWrapper, MutationWrapper, MutationData } from "@gemworks/transmuter-ts";
-import useGembankStore from "../../stores/useGembankStore";
 import { parseWhitelistType } from "../../utils/helpers";
 import { findWhitelistProofPDA } from "@gemworks/gem-farm-ts";
 
@@ -21,6 +20,7 @@ import { parseSecondsToDate } from "../../utils/helpers";
 
 import {SelectedTokens} from "../../interfaces/index";
 import {Vaults} from "../../components/Vaults";
+import useGembankClient from "../../hooks/useGemBankClient";
 
 export const MutationView: FC = ({}) => {
 	const wallet = useWallet();
@@ -32,8 +32,7 @@ export const MutationView: FC = ({}) => {
 	const router = useRouter();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
 	const { mutationPublicKey } = router.query;
-	const gemBankClient = useGembankStore((s) => s.gemBankClient);
-	const { initGemBankClient } = useGembankStore();
+	const gemBankClient = useGembankClient()
 	const [takerBankWhitelist, setTakerBankWhitelist] = useState(null);
 	const [selectedTokens, setSelectedTokens] = useState<SelectedTokens>({});
 	const [mutationOwner, setMutationOwner] = useState<PublicKey>(null);
@@ -42,7 +41,6 @@ export const MutationView: FC = ({}) => {
 	useEffect(() => {
 		if (wallet.publicKey && connection) {
 				initTransmuterClient(wallet, connection);
-				initGemBankClient(wallet, connection);
 		}
 	}, [wallet.publicKey, connection]);
 

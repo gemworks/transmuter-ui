@@ -5,7 +5,6 @@ import { PublicKey } from "@solana/web3.js";
 import { TransmuterWrapper } from "@gemworks/transmuter-ts";
 import { WhitelistType } from "@gemworks/gem-farm-ts";
 import { Icon } from "./Icon";
-import useGembankStore from "../stores/useGembankStore";
 import { WhiteListProps } from "../interfaces";
 import { useInputState } from "../utils/hooks/hooks";
 import { ToastContainer, toast } from "react-toastify";
@@ -25,6 +24,7 @@ interface SlideOverProps {
 }
 
 import { parseWhitelistType } from "../utils/helpers";
+import useGembankClient from "../hooks/useGemBankClient";
 interface RadioButtonProps {
 	whitelistType: WhitelistType;
 	setWhitelistType: (e) => void;
@@ -79,18 +79,12 @@ export default function BankSidebar({
 	isTransmuterOwner,
 	bankLetter,
 }: SlideOverProps) {
-	const gemBankClient = useGembankStore((s) => s.gemBankClient);
+	const gemBankClient = useGembankClient()
 	const [whiteList, setWhiteList] = useState<WhiteListProps[]>([]);
 	const [whitelistType, setWhitelistType] = useState<WhitelistType>(WhitelistType.Creator);
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
 	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
 	const [showItem, setShowItem] = useState(false);
-
-	useEffect(() => {
-		if (wallet.publicKey && connection && gemBankClient === null) {
-			initGemBankClient(wallet, connection);
-		}
-	}, [wallet.publicKey, connection]);
 
 	useEffect(() => {
 		if (gemBankClient !== null && bankPk !== undefined && bankPk !== "") {
