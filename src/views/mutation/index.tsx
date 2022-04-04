@@ -21,6 +21,10 @@ import { parseSecondsToDate } from "../../utils/helpers";
 import {SelectedTokens} from "../../interfaces/index";
 import {Vaults} from "../../components/Vaults";
 import useGembankClient from "../../hooks/useGemBankClient";
+import { programs } from "@metaplex/js";
+const {
+	metadata: { Metadata },
+} = programs;
 
 export const MutationView: FC = ({}) => {
 	const wallet = useWallet();
@@ -175,7 +179,8 @@ export const MutationView: FC = ({}) => {
 			const ataTokenA = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
 				mint: new PublicKey(mint),
 			});
-
+			
+			const metadataPDA = await Metadata.getPDA(new PublicKey(mint));
 			await gemBankClient.depositGem(
 				transmuterWrapper.bankA,
 				vaultA.vault,
@@ -185,7 +190,7 @@ export const MutationView: FC = ({}) => {
 				ataTokenA.value[0].pubkey,
 				isFromWhiteList && mintProof,
 				// @TODO add metadata support
-				undefined,
+				metadataPDA,
 				isFromWhiteList && creatorProof_ && creatorProof_
 			);
 
@@ -200,7 +205,7 @@ export const MutationView: FC = ({}) => {
 				const ataTokenB = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
 					mint: new PublicKey(mint),
 				});
-
+				const metadataPDA = await Metadata.getPDA(new PublicKey(mint));
 				await gemBankClient.depositGem(
 					transmuterWrapper.bankB,
 					vaultB.vault,
@@ -211,7 +216,7 @@ export const MutationView: FC = ({}) => {
 					isFromWhiteList && mintProof,
 
 					// @TODO add metadata support
-					undefined,
+					metadataPDA,
 					isFromWhiteList && creatorProof_ && creatorProof_
 				);
 			}
@@ -224,7 +229,7 @@ export const MutationView: FC = ({}) => {
 					const [creatorProof, bump2] = await findWhitelistProofPDA(transmuterWrapper.bankC, new PublicKey(creatorPk));
 					creatorProof_ = creatorProof;
 				}
-
+				const metadataPDA = await Metadata.getPDA(new PublicKey(mint));
 				const ataTokenC = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
 					mint: new PublicKey(mint),
 				});
@@ -238,7 +243,7 @@ export const MutationView: FC = ({}) => {
 					isFromWhiteList && mintProof,
 
 					// @TODO add metadata support
-					undefined,
+					metadataPDA,
 					isFromWhiteList && creatorProof_ && creatorProof_
 				);
 			}

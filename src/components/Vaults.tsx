@@ -80,7 +80,10 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 								const { value } = await connection.getParsedAccountInfo(new PublicKey(account.account.data["parsed"].info.mint));
 
 								//if supply === 0 => assume NFT & compare against creator array; else => use mintAuthority
-
+								const currentTokensInWallet = parseInt(account.account.data["parsed"].info.tokenAmount.amount);
+								if (currentTokensInWallet > 0) {
+							
+							
 								if (parseInt(value.data["parsed"].info.supply) === 1) {
 									const metadataPDA = await Metadata.getPDA(new PublicKey(account.account.data["parsed"].info.mint));
 									const tokenMetadata = await Metadata.load(connection, metadataPDA);
@@ -93,6 +96,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 										ownedMints.push({ mint: account.account.data["parsed"].info.mint });
 									}
 								}
+							}
 							}
 
 							//check if the user has any of these tokens in his wallet

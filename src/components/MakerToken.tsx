@@ -13,12 +13,12 @@ export function MakerToken({ token, mutationData, vaultId}) {
 	useEffect(() => {
 		const fetchDecimals = async() => {
 			const {value} = await connection.getParsedAccountInfo(mint)
-			setDecimals(value?.data?.["parsed"].info?.decimals || 9)
+			setDecimals(value?.data?.["parsed"].info?.decimals)
 		}
 		fetchDecimals()
 	}, [])
 
-	if (!decimals) return null
+
 	
 
 	return (

@@ -135,7 +135,7 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 	async function fetchDecimals(mint) {
 		if (!mint) return 9
 		const {value} = await connection.getParsedAccountInfo(mint)
-		return value?.data?.["parsed"]?.info?.decimals || 9
+		return value?.data?.["parsed"]?.info?.decimals
 	}
 
 	async function createMutation() {
@@ -146,7 +146,6 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 		const makerTokenADecimals = await fetchDecimals(makerMintA)
 		const makerTokenBDecimals = await fetchDecimals(makerMintB)
 		const makerTokenCDecimals = await fetchDecimals(makerMintC)
-
 		const signature = await prepareMutation({
 			sdk: transmuterClient,
 			executionPriceLamports: toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
