@@ -6,7 +6,7 @@ const Transmuters: NextPage = (props) => {
   return (
     <div>
       <Head>
-        <title>GemWorks - Transmuters</title>
+        <title>GemWorks - Transmuter</title>
         <meta name="og:title" content={`GemWorks - Transmuters`} key="ogtitle" />
 				<meta name="description" content="GemWorks - Transmuters" />
 				<meta property="og:type" content="website" />
