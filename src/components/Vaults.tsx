@@ -3,22 +3,25 @@ import { useEffect, useState } from "react";
 
 // Store
 
-import { TrendingUpIcon, TrendingDownIcon } from "@heroicons/react/outline";
+import { TrendingDownIcon } from "@heroicons/react/outline";
 
 import { Wallet } from "@saberhq/solana-contrib";
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 import { ToastContainer, toast } from "react-toastify";
 
 // Components
 import GradientAvatar from "components/GradientAvatar";
-import { formatPublickey, parseSecondsToDate } from "../utils/helpers";
+import { formatPublickey } from "../utils/helpers";
+import { MakerToken } from "./MakerToken";
 import { programs } from "@metaplex/js";
 import axios from "axios";
 const {
 	metadata: { Metadata },
 } = programs;
 import { SelectedTokens } from "../interfaces/index";
+
+
 interface VaultProps {
 	mutationData: any;
 	takerBankWhitelist: { [key: string]: { publicKey: string; whiteListType: string }[] };
@@ -407,25 +410,7 @@ export function Vaults({ mutationData, takerBankWhitelist, connection, wallet, s
 							return (
 								<div key={key}>
 									{key.includes("makerToken") && mutation[key]?.amountPerUse.toNumber() > 0 && (
-										<div>
-											<div className="py-5 border-b border-gray-200">
-												<h3 className="text-lg leading-6 font-medium text-gray-900">
-													<span className="uppercase">{new TextDecoder().decode(new Uint8Array(mutationData?.name))}</span> Vault {key.split("makerToken")[1]}
-												</h3>
-												<div className="flex items-center  text-sm mt-2 ">
-													<TrendingUpIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-													<span className="text-gray-400 pl-1 ">You receive</span>
-													<span className="text-gray-800 font-medium pl-1.5">{mutation[key].amountPerUse.toString()}</span>
-													<span className="text-gray-400 pl-1 ">token{mutation[key].amountPerUse.toNumber() > 1 && "s"}</span>
-												</div>
-											</div>
-
-											<div className="space-x-2 pt-5 flex items-center">
-												<GradientAvatar width={7} height={7} hash={mutation[key].mint.toBase58()} />
-
-												<span className="pl-2">{formatPublickey(mutation[key].mint.toBase58())}</span>
-											</div>
-										</div>
+										<MakerToken token={mutation[key]} vaultId={key.split("makerToken")[1]} mutationData={mutationData} />
 									)}
 								</div>
 							);
