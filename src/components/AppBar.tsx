@@ -68,7 +68,7 @@ export const AppBar: FC = (props) => {
           </div>
 		
         </div> */}
-								{/* <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">Devnet</span> */}
+							{process.env.NEXT_PUBLIC_CLUSTER === "DEVNET" &&	<span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">Devnet</span>}
 								<WalletMultiButton className="btn btn-ghost text-gray-900" />
 							</div>
 						</div>

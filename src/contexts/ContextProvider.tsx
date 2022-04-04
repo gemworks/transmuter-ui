@@ -25,6 +25,7 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	}
 	const network = WalletAdapterNetwork.Devnet;
 	const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+	const mainnetGenesysgo = "https://ssc-dao.genesysgo.net";
 	//@TODO add genesysgo rpc endpoint for mainnet https://ssc-dao.genesysgo.net/
 
 	const wallets = useMemo(
@@ -46,7 +47,7 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
 	return (
 		// TODO: updates needed for updating and referencing endpoint: wallet adapter rework
-		<ConnectionProvider endpoint={"https://ssc-dao.genesysgo.net"}>
+		<ConnectionProvider endpoint={process.env.NEXT_PUBLIC_CLUSTER === "MAINNET" ? mainnetGenesysgo : endpoint   }>
 			<WalletProvider wallets={wallets} onError={onError} autoConnect={autoConnect}>
 				<ReactUIWalletModalProvider>{children}</ReactUIWalletModalProvider>
 			</WalletProvider>
