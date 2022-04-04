@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XIcon } from "@heroicons/react/outline";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Switch } from "@headlessui/react";
 import { useInputState } from "../utils/hooks/hooks";
 
@@ -76,6 +76,7 @@ interface CreateMutationSidebarProps {
 
 export default function CreateMutationSidebar({ open, toggleState, banks, setBank, openBank, transmuterWrapper, getMutationsByTransmuter }: CreateMutationSidebarProps) {
 	const [enabled, setEnabled] = useState(false);
+	const { connection } = useConnection()
 	const wallet = useWallet();
 	const transmuterClient = useTransmuterStore((s) => s.transmuterClient);
 
@@ -131,7 +132,21 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 		}
 	}
 
+	async function fetchDecimals(mint) {
+		if (!mint) return 9
+		const {value} = await connection.getParsedAccountInfo(mint)
+		return value?.data?.["parsed"]?.info?.decimals || 9
+	}
+
 	async function createMutation() {
+		const makerMintA = new PublicKey(makerATokenAddress)
+		const makerMintB = makerBAmountPerUse && new PublicKey(makerBTokenAddress)
+		const makerMintC = makerCAmountPerUse && new PublicKey(makerCTokenAddress)
+
+		const makerTokenADecimals = await fetchDecimals(makerMintA)
+		const makerTokenBDecimals = await fetchDecimals(makerMintB)
+		const makerTokenCDecimals = await fetchDecimals(makerMintC)
+
 		const signature = await prepareMutation({
 			sdk: transmuterClient,
 			executionPriceLamports: toBN(parseFloat(executionPrice) * LAMPORTS_PER_SOL),
@@ -158,11 +173,11 @@ export default function CreateMutationSidebar({ open, toggleState, banks, setBan
 				requiredUnits: RequiredUnits.Gems,
 				vaultAction: parseStringToVaultAction(takerCEscrowAction),
 			},
-			makerTokenAmount: toBN(parseFloat(makerATotalFunding)),
 			takerTokenAmount: toBN(parseFloat(takerAAmountPerUse)),
-			makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse)),
-			makerTokenBAmountPerUse: makerBAmountPerUse > 0 && toBN(parseFloat(makerBAmountPerUse)),
-			makerTokenCAmountPerUse: makerCAmountPerUse > 0 && toBN(parseFloat(makerCAmountPerUse)),
+			makerTokenAmount: toBN(parseFloat(makerATotalFunding) * Math.pow(10, makerTokenADecimals)),
+			makerTokenAmountPerUse: toBN(parseFloat(makerAAmountPerUse) * Math.pow(10, makerTokenADecimals)),
+			makerTokenBAmountPerUse: makerBAmountPerUse > 0 && toBN(parseFloat(makerBAmountPerUse) * Math.pow(10, makerTokenBDecimals)),
+			makerTokenCAmountPerUse: makerCAmountPerUse > 0 && toBN(parseFloat(makerCAmountPerUse) * Math.pow(10, makerTokenCDecimals)),
 			takerTokenUnits: RequiredUnits.Gems,
 		});
 
