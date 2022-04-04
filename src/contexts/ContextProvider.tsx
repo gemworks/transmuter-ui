@@ -1,65 +1,64 @@
-import { WalletAdapterNetwork, WalletError } from '@solana/wallet-adapter-base';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider as ReactUIWalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { WalletAdapterNetwork, WalletError } from "@solana/wallet-adapter-base";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
+import { WalletModalProvider as ReactUIWalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
-    PhantomWalletAdapter,
-    SolflareWalletAdapter,
-    SolletExtensionWalletAdapter,
-    SolletWalletAdapter,
-    TorusWalletAdapter,
-    // LedgerWalletAdapter,
-    // SlopeWalletAdapter,
-} from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import { FC, ReactNode, useCallback, useMemo } from 'react';
-import { AutoConnectProvider, useAutoConnect } from './AutoConnectProvider';
+	PhantomWalletAdapter,
+	SolflareWalletAdapter,
+	SolletExtensionWalletAdapter,
+	SolletWalletAdapter,
+	TorusWalletAdapter,
+	// LedgerWalletAdapter,
+	// SlopeWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
+import { clusterApiUrl } from "@solana/web3.js";
+import { FC, ReactNode, useCallback, useMemo } from "react";
+import { AutoConnectProvider, useAutoConnect } from "./AutoConnectProvider";
 import { notify } from "../utils/notifications";
 
 const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const { autoConnect } = useAutoConnect();
+	const { autoConnect } = useAutoConnect();
 
-    // TODO: WALLET ADAPTER IN GENERAL NEEDS WORK, CONNECTING DIFFERENT WALLETS, NETWORK, REFRESH, EVENTS
+	// TODO: WALLET ADAPTER IN GENERAL NEEDS WORK, CONNECTING DIFFERENT WALLETS, NETWORK, REFRESH, EVENTS
 
-    {/* TODO: UPDATE CLUSTER PER NETWORK SETTINGS, ADD LOCALHOST + CUSTOMNET | ADAPTER REWORK */ }
-    const network = WalletAdapterNetwork.Devnet;
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-    //@TODO add genesysgo rpc endpoint for mainnet https://ssc-dao.genesysgo.net/
+	{
+		/* TODO: UPDATE CLUSTER PER NETWORK SETTINGS, ADD LOCALHOST + CUSTOMNET | ADAPTER REWORK */
+	}
+	const network = WalletAdapterNetwork.Devnet;
+	// const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+	//@TODO add genesysgo rpc endpoint for mainnet https://ssc-dao.genesysgo.net/
 
-    const wallets = useMemo(
-        () => [
-            new PhantomWalletAdapter(),
-            new SolflareWalletAdapter(),
-            new SolletWalletAdapter({ network }),
-            // new SolletExtensionWalletAdapter({ network }),
-            // new TorusWalletAdapter(),
-            // new LedgerWalletAdapter(),
-            // new SlopeWalletAdapter(),
-        ],
-        [network]
-    );
+	const wallets = useMemo(
+		() => [
+			new PhantomWalletAdapter(),
+			new SolflareWalletAdapter(),
+			new SolletWalletAdapter({ network }),
+			// new SolletExtensionWalletAdapter({ network }),
+			// new TorusWalletAdapter(),
+			// new LedgerWalletAdapter(),
+			// new SlopeWalletAdapter(),
+		],
+		[network]
+	);
 
-    const onError = useCallback(
-        (error: WalletError) => {
-            notify({ type: 'error', message: error.message ? `${error.name}: ${error.message}` : error.name });
-            console.error(error);
-        },
-        []
-    );
+	const onError = useCallback((error: WalletError) => {
+		notify({ type: "error", message: error.message ? `${error.name}: ${error.message}` : error.name });
+		console.error(error);
+	}, []);
 
-    return (
-        // TODO: updates needed for updating and referencing endpoint: wallet adapter rework
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} onError={onError} autoConnect={autoConnect}>
-                <ReactUIWalletModalProvider>{children}</ReactUIWalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
-    );
+	return (
+		// TODO: updates needed for updating and referencing endpoint: wallet adapter rework
+		<ConnectionProvider endpoint={"https://ssc-dao.genesysgo.net"}>
+			<WalletProvider wallets={wallets} onError={onError} autoConnect={autoConnect}>
+				<ReactUIWalletModalProvider>{children}</ReactUIWalletModalProvider>
+			</WalletProvider>
+		</ConnectionProvider>
+	);
 };
 
 export const ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    return (
-        <AutoConnectProvider>
-            <WalletContextProvider>{children}</WalletContextProvider>
-        </AutoConnectProvider>
-    );
+	return (
+		<AutoConnectProvider>
+			<WalletContextProvider>{children}</WalletContextProvider>
+		</AutoConnectProvider>
+	);
 };

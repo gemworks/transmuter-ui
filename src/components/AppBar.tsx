@@ -7,13 +7,12 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useAutoConnect } from "../contexts/AutoConnectProvider";
 // Wallet
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import {useRouter} from "next/router"
+import { useRouter } from "next/router";
 function classNames(...classes) {
 	return classes.filter(Boolean).join(" ");
 }
 
 export const AppBar: FC = (props) => {
-
 	const router = useRouter();
 	return (
 		<Disclosure as="nav" className="bg-white shadow">
@@ -24,14 +23,19 @@ export const AppBar: FC = (props) => {
 							<div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
 								<div className="flex-shrink-0 flex items-center text-4xl">
 									<Link href="/">
-									<img src="/images/gem.png" className="block h-12 w-auto cursor-pointer" alt="gemworks_transmuter" />
+										<img src="/images/gem.png" className="block h-12 w-auto cursor-pointer" alt="gemworks_transmuter" />
 									</Link>
-								
 								</div>
 								<div className="hidden sm:ml-6 sm:flex sm:space-x-8">
 									{/* Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
 									<Link href="/transmuters">
-										<span className={` text-gray-900 hover:text-indigo-500 transition-all duration-150 ease-in inline-flex items-center px-1 pt-1  text-sm font-medium cursor-pointer ${router.pathname === "/transmuters" && "border-indigo-500 border-b-2"}`}>Transmuters</span>
+										<span
+											className={` text-gray-900 hover:text-indigo-500 transition-all duration-150 ease-in inline-flex items-center px-1 pt-1  text-sm font-medium cursor-pointer ${
+												router.pathname === "/transmuters" && "border-indigo-500 border-b-2"
+											}`}
+										>
+											Transmuters
+										</span>
 									</Link>
 								</div>
 							</div>
@@ -64,7 +68,7 @@ export const AppBar: FC = (props) => {
           </div>
 		
         </div> */}
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">Devnet</span>
+								{/* <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">Devnet</span> */}
 								<WalletMultiButton className="btn btn-ghost text-gray-900" />
 							</div>
 						</div>
