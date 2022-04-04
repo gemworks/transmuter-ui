@@ -48,12 +48,12 @@ export default function Vault({
 		{
 			value: "do-nothing",
 			title: "Do Nothing",
-			description: "Omits this property",
+			description: "Lets the taker withdraw the deposited tokens.",
 		},
 		{
 			value: "lock",
 			title: "Lock",
-			description: "Locks the tokens, deposited by the taker.",
+			description: "Locks the tokens, deposited by the taker, forever.",
 		},
 		{
 			value: "change-owner",
