@@ -1,6 +1,5 @@
 // Next, React
 import { FC, useEffect, useState } from "react";
-import Link from "next/link";
 
 // Wallet
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
@@ -12,7 +11,7 @@ import ManageMutation from "../../components/ManageMutation";
 // Store
 import useTransmuterStore from "../../stores/useTransmuterStore";
 import { PublicKey } from "@solana/web3.js";
-import { PlusIcon, UsersIcon, PlusSmIcon as PlusSmIconSolid, LibraryIcon } from "@heroicons/react/outline";
+import { UsersIcon, PlusSmIcon as PlusSmIconSolid, LibraryIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { TransmuterSDK, TransmuterWrapper } from "@gemworks/transmuter-ts";
 import BankSidebar from "../../components/BankSidebar";
@@ -49,8 +48,6 @@ export function BankCard({ bank, setBank }: BankCardProps) {
 		</li>
 	);
 }
-
-
 
 export const TransmuterView: FC = ({}) => {
 	const wallet = useWallet();
@@ -116,7 +113,6 @@ export const TransmuterView: FC = ({}) => {
 		setIsLoading(true);
 		if (wallet.publicKey) {
 			initTransmuterClient(wallet, connection);
-		
 		}
 	}, [wallet.publicKey, connection]);
 
@@ -124,9 +120,8 @@ export const TransmuterView: FC = ({}) => {
 		if (transmuterClient && transmuterPublicKey && wallet.publicKey) {
 			getTransmuter(transmuterClient);
 			getMutationsByTransmuter(transmuterClient);
-	
-				setIsLoading(false);
-	
+
+			setIsLoading(false);
 		}
 	}, [transmuterClient, connection, wallet.publicKey]);
 
@@ -152,11 +147,19 @@ export const TransmuterView: FC = ({}) => {
 		}
 		const accounts = await transmuterClient.programs.Transmuter.account.mutation.all();
 		const mutations = accounts.filter((account) => account.account.transmuter.toBase58() == transmuterPublicKey);
-		
+
 		setMutations(mutations);
 		if (loading) {
 			setIsLoadingTwo(false);
 		}
+	}
+
+	function getBankLetter(bankPk: string): string {
+		const bank = banks.find((item) => item.publicKey === bankPk);
+		if (bank) {
+			return bank.letter;
+		}
+		return "";
 	}
 
 	return (
@@ -165,7 +168,7 @@ export const TransmuterView: FC = ({}) => {
 			<BankSidebar
 				open={openBank}
 				bankPk={bank}
-				bankLetter={"A"}
+				bankLetter={getBankLetter(bank)}
 				isTransmuterOwner={transmuterOwner?.toBase58() === wallet.publicKey?.toBase58()}
 				transmuterWrapper={transmuterWrapper}
 				toggleState={() => {
@@ -185,7 +188,7 @@ export const TransmuterView: FC = ({}) => {
 					setMutationDraft(true);
 				}}
 				getMutationsByTransmuter={() => {
-					getMutationsByTransmuter(transmuterClient, true)
+					getMutationsByTransmuter(transmuterClient, true);
 				}}
 				transmuterWrapper={transmuterWrapper}
 				toggleState={() => toggleMutation()}
@@ -203,7 +206,7 @@ export const TransmuterView: FC = ({}) => {
 				transmuterWrapper={transmuterWrapper}
 				open={openMutationManager}
 				getMutationsByTransmuter={() => {
-					getMutationsByTransmuter(transmuterClient, true)
+					getMutationsByTransmuter(transmuterClient, true);
 				}}
 				toggleState={() => toggleMutationManager()}
 			/>
@@ -211,7 +214,9 @@ export const TransmuterView: FC = ({}) => {
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="space-y-1">
 						{isLoading ? (
-							<div className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-200 w-20 text-gray-200 animate-pulse ">gm</div>
+							<div className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-200 w-20 text-gray-200 animate-pulse ">
+								gm
+							</div>
 						) : (
 							<span
 								className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
@@ -235,7 +240,13 @@ export const TransmuterView: FC = ({}) => {
 							>
 								<span className="absolute inset-x-0 bottom-full mb-2 flex">
 									<span className="bg-gray-900 text-white rounded-md text-[0.625rem] leading-4 tracking-wide font-semibold uppercase py-1 px-3 filter drop-shadow-md">
-										<svg aria-hidden="true" width="16" height="6" viewBox="0 0 16 6" className="text-gray-900 absolute top-full left-1/2 -mt-px -ml-2 ">
+										<svg
+											aria-hidden="true"
+											width="16"
+											height="6"
+											viewBox="0 0 16 6"
+											className="text-gray-900 absolute top-full left-1/2 -mt-px -ml-2 "
+										>
 											<path
 												fill-rule="evenodd"
 												clip-rule="evenodd"
@@ -283,7 +294,7 @@ export const TransmuterView: FC = ({}) => {
 			<main>
 				<div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 					<h2 className="text-xl font-bold leading-tight text-gray-700 mb-4">Banks</h2>
-					{isLoading  ? (
+					{isLoading ? (
 						<SkeletonGridCards numberOfCards={3} showCard={isLoading} />
 					) : (
 						<ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6 xl:gap-x-8">
@@ -336,7 +347,9 @@ export const TransmuterView: FC = ({}) => {
 													<div className="flex justify-center">
 														<BeakerIcon className="w-8 h-8 text-gray-400" aria-hidden="true" />
 													</div>
-													<h3 className="text-sm my-0.5 font-medium text-gray-500 truncate">{formatPublickey(mutation.publicKey.toBase58())}</h3>
+													<h3 className="text-sm my-0.5 font-medium text-gray-500 truncate">
+														{formatPublickey(mutation.publicKey.toBase58())}
+													</h3>
 
 													<h2 className=" font-semibold text-gray-900 uppercase">{parseString(mutation.account.name)}</h2>
 												</div>
