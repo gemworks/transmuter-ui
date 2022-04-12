@@ -84,7 +84,7 @@ export default function BankSidebar({
 	const [whitelistType, setWhitelistType] = useState<WhitelistType>(WhitelistType.Creator);
 	const [publicKey, handlePublicKeyChange, setPublicKey, resetPublicKey] = useInputState("");
 	const [clipBoardValue, copyToClipboard] = useCopyToClipboard();
-	const [showItem, setShowItem] = useState(false);
+	const [showItem, setShowItem] = useState(true);
 
 	useEffect(() => {
 		if (gemBankClient !== null && bankPk !== undefined && bankPk !== "") {
@@ -146,7 +146,7 @@ export default function BankSidebar({
 										<div className="px-4 sm:px-6">
 											<div className="flex items-start justify-between">
 												<Dialog.Title className="text-lg font-medium text-gray-900">
-													<dt className="text-sm font-medium text-gray-500 truncate ">Bank {bankLetter}</dt>
+													<dt className="text-sm font-medium text-gray-500 truncate">Bank {bankLetter}</dt>
 													<Transition
 														show={showItem}
 														enter="transform ease-out duration-500 transition origin-bottom"
