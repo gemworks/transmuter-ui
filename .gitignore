@@ -40,3 +40,4 @@ yarn-error.log*
 *.log
 
 .env
+.idea
