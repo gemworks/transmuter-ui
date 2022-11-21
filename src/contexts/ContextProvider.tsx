@@ -25,7 +25,7 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	}
 	const network = WalletAdapterNetwork.Devnet;
 	const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-	const mainnetGenesysgo = "https://ssc-dao.genesysgo.net";
+	const mainnetGenesysgo = "https://api.helius.xyz/v0/rpc?api-key=dc240ff0-f29f-4212-b0ba-a5642f92675c";
 	//@TODO add genesysgo rpc endpoint for mainnet https://ssc-dao.genesysgo.net/
 
 	const wallets = useMemo(
